@@ -2,22 +2,28 @@
 
 ## Project Title & Track
 - **Title:** Independent Impact Project Development Portal
-- **Hackathon Track:** Sustainability & Climate Innovation (Hedera Africa 2025)
+- **Hackathon Track:** 2. DLT for Operations
 - **Pitch Deck:** _Replace this placeholder with the public link to your latest deck before submission._
-- **Certification Link:** _Replace this placeholder with the verifiable certification or credential link before submission._
-- **Required Collaborator:** Invite `Hackathon@hashgraph-association.com` as a collaborator on this repository so the judging AI can access the codebase.
+- **Certification Link:** [Christiaan Pauw](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
 
 ## Repository Overview
-### ProjectDevelopmentPortal (primary focus)
-The `ProjectDevelopmentPortal/` directory hosts an R Shiny application that authenticates Independent Impact agents, orchestrates workflow modules, and logs every action against Hedera and Fluree backends. The app sources `global.R`, builds the interface with `shiny`/`shinyjs`, and renders either the login module or the full portal depending on the active session state.【F:ProjectDevelopmentPortal/app.R†L2-L119】 The environment template wires key paths, Postgres settings, Fluree defaults, and the Hiero Hedera SDK bindings used throughout the portal.【F:ProjectDevelopmentPortal/template_global.R†L2-L85】 Bootstrapping scripts provision database tables, ingest workflow metadata, and prepare Hedera operator credentials for downstream transactions.【F:ProjectDevelopmentPortal/scripts/setup.R†L1-L160】
+### Project Development Portal (primary focus)
+The `ProjectDevelopmentPortal/` directory hosts the Independent Impact Project Development Portal. The portal is also hosted at https://app.independentimpact.org, currently running on testnet. Test it out by login in as userabcde12345@nomail.com with password *******. The Project Development Portal provides the infrastructure for the design, validation and verification for impact projects. Impact projects are any undertaking that is specifically intended to lead to a beneficial impact over and above what would have transpired in the normal course of events. This typically includes greenhouse gas emission reduction projects, but also climate change adaptation, health, and poverty alleviation. 
+
+The app contains utilities for user registration and three different project-related workflows. 
+
+The app registers agents, orchestrates workflow modules, and logs every action against Hedera Consensus Service and Fluree backends. The app sources `global.R`, builds the interface with `shiny`/`shinyjs`, and renders either the login module or the full portal depending on the active session state.【F:ProjectDevelopmentPortal/app.R†L2-L119】 The environment template wires key paths, Postgres settings, Fluree defaults, and the Hiero Hedera SDK bindings used throughout the portal.【F:ProjectDevelopmentPortal/template_global.R†L2-L85】 Bootstrapping scripts provision database tables, ingest workflow metadata, and prepare Hedera operator credentials for downstream transactions.【F:ProjectDevelopmentPortal/scripts/setup.R†L1-L160】
 
 Hedera-specific operations cover creating project topics, registering DID-backed user identities, and submitting notarised updates. Project onboarding signs a `TopicCreateTransaction`, links admin/submit keys, and stores the resulting topic against the project record.【F:ProjectDevelopmentPortal/modules/tabProjects.R†L309-L360】 Agent enrolment generates Hedera accounts, registers Hiero DIDs, and pushes DID documents to IPFS, ensuring each contributor has a verifiable identifier anchored on Hedera Testnet.【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L336-L438】 Document publication encrypts workflow payloads, decrypts topic keys, and executes `TopicMessageSubmitTransaction` calls before retrieving the mirror-sequenced message ID for audit trails.【F:ProjectDevelopmentPortal/functions/submitDocToHedera.R†L300-L360】
 
-### GHG_methodologies
+### GHG methodologies
 `GHG_methodologies/` packages the top UNFCCC CDM methodologies as installable R libraries, with curated references, pkgdown-ready vignettes, and coverage across renewable energy, efficiency, and waste management methodologies for both small- and large-scale projects.【F:GHG_methodologies/README.md†L1-L135】 These packages inform the quantification logic surfaced inside the portal workflows.
+Documentation is hosted on https://independentimpact.github.io/GHG_methodologies/. 
 
-### IIchatbot
+### Data Explorer
 `IIchatbot/` provides a Docker Compose stack combining a Fluree MCP server, a Streamlit analyst UI, and an Nginx front end for Model Context Protocol interactions with ledger data.【F:IIchatbot/README.md†L1-L68】【F:IIchatbot/docker-compose.yml†L1-L50】 It supports analysts who need conversational access to the same datasets powering the portal.
+
+The explorer is live at chat.independentimpact.org. 
 
 ### Protocol
 `Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17】
