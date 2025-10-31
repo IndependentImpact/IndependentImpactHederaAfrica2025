@@ -1,0 +1,30 @@
+[
+	{
+		"title": "Project Registration Request (PRR)",
+		"description": "Used by a project developer to request the formal registration of a project from the Independent Impact Standards Body.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"id_msg_pred_drcir": {
+				"title": "Message ID of DR-CIR",
+				"description": "Message ID of the 'Document Review: PDD Certificate Issuance Request' (DR-CIR) that approved the project's PDD:",
+				"type": "string"
+			},
+			"url_ipfs_pred_drcir": {
+				"title": "IPFS URL of DR-CIR",
+				"description": "IPFS URL of the 'Document Review: PDD Certificate Issuance Request' (DR-CIR) that approved the project's PDD:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"headers",
+			"id_msg_pred_drcir",
+			"url_ipfs_pred_drcir"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

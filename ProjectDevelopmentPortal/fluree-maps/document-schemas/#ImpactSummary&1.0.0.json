@@ -1,0 +1,36 @@
+[
+	{
+		"title": "Impact Summary",
+		"description": "",
+		"properties": {
+			"description_impact": {
+				"title": "Impact Description",
+				"description": "Description of impact:",
+				"type": "string"
+			},
+			"period_impact": {
+				"title": "Impact Period",
+				"description": "Period during which the impact occurred:",
+				"$ref": "#DateTimePeriod&1.0.0",
+			},
+			"unit_impact": {
+				"title": "Impact Unit",
+				"description": "Unit of impact (e.g., 'kilogramme' or 'metric tonne'):",
+				"type": "string"
+			},
+			"extent_impact": {
+				"title": "Impact Extent",
+				"description": "Extent of impact, as a quantity in the unit of impact:",
+				"type": "number"
+			}
+		},
+		"required": [
+			"description_impact",
+			"period_impact",
+			"unit_impact",
+			"extent_impact"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

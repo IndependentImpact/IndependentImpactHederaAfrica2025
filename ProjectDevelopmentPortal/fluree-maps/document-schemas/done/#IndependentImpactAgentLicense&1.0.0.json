@@ -1,0 +1,39 @@
+[
+	{
+		"title": "Independent Impact Agent License",
+		"description": "",
+		"properties": {
+			"did_licensee": {
+				"title": "Licensee DID",
+				"description": "DID of the holder of the license:",
+				"type": "string"
+			},
+			"email_address": {
+				"title": "Email Address",
+				"description": "Email address of the holder of the license:",
+				"type": "string"
+			},
+			"scope": {
+				"title": "Scope",
+				"description": "Scope of the license:",
+				"type": "array",
+				"items": {
+					"type": "string"
+				}
+			},
+			"license_number": {
+				"title": "License Number",
+				"description": "License number:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"did_licensee",
+			"email_address",
+			"scope",
+			"license_number"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

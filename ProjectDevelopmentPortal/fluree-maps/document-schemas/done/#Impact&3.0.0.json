@@ -1,0 +1,225 @@
+[
+	{
+		"title": "Impact",
+		"description": "Provides detail about an impact.",
+		"properties": {
+			"intentionality": {
+				"title": "Intentionality",
+				"description": "Is this an intentional impact or an unintentional impact (e.g., is it a goal or is it leakage)?",
+				"type": "string",
+				"enum": [
+					"INTENTIONAL",
+					"UNINTENTIONAL"
+				]
+			},
+			"beneficial_or_adverse": {
+				"title": "Beneficial or Adverse",
+				"description": "Is this impact an environmentally beneficial impact or an environmentally adverse impact?",
+				"type": "string",
+				"enum": [
+					"BENEFICIAL",
+					"ADVERSE"
+				]
+			},
+			"description": {
+				"title": "Description",
+				"description": "Describe the impact in terms of a state difference attributable to the project:",
+				"type": "string"
+			},
+			"monitored": {
+				"title": "Monitored",
+				"description": "Will this impact be monitored (quantified) or not?",
+				"type": "string",
+				"enum": [
+					"YES",
+					"NO"
+				]
+			},
+			"not_monitored_justification": {
+				"title": "Justification",
+				"description": "Why will this impact not be monitored?",
+				"type": "string"
+			},
+			"indicator": {
+				"title": "Indicator",
+				"description": "Describe the state indicator that will be used to measure the impact as a state difference:",
+				"type": "string"
+			},
+			"indicator_label": {
+				"title": "Label",
+				"description": "Provide a unique, short label for the indicator:",
+				"type": "string"
+			},
+			"indicator_unit_of_measure": {
+				"title": "Unit of Measure",
+				"description": "What is the unit of measure for the indicator?",
+				"type": "string"
+			},
+			"methodologies": {
+				"title": "Methodologies",
+				"description": "Which methodologies will you follow to monitor and/or quantify this impact?",
+				"type": "array",
+				"items": {
+					"$ref": "#MethodologyApplicability&3.0.0"
+				}
+			},
+			"additionality": {
+				"title": "Additionality",
+				"description": "Justify why you consider this impact to be additional:",
+				"type": "string"
+			},
+			"data_and_parameters": {
+				"title": "Supporting Data and Parameters",
+				"description": "What parameters will be monitored, or what data needs to be obtained, to enable the quantification of this impact?",
+				"type": "array",
+				"items": {
+					"$ref": "#TableRow-DataParameterMonitoring&1.0.0"
+				}
+			},
+			"crediting_period": {
+				"title": "Crediting Period",
+				"description": "When is the (first) credting period for this impact?",
+				"$ref": "#DateTimePeriod&1.0.0"
+			},
+			"crediting_period_type": {
+				"title": "Crediting Period Type",
+				"description": "Will this crediting period be renewable or non-renewable?",
+				"type": "string",
+				"enum": [
+					"RENEWABLE",
+					"NON_RENEWABLE"
+				]
+			},
+			"monitoring_periods": {
+				"title": "Monitoring Periods",
+				"description": "What will the monitoring periods be for the (first) crediting period of this impact?",
+				"type": "array",
+				"items": {
+					"$ref": "#DateTimePeriod&1.0.0"
+				}
+			},
+			"state_baseline": {
+				"title": "Baseline State",
+				"description": "What is the value of this indicator in the baseline state? Use the unit of measure identified earlier.",
+				"type": "number"
+			},
+			"state_project": {
+				"title": "Project State",
+				"description": "What is the value of this indicator in the project state? Provide it for the (first) crediting period and in the unit of measure identified earlier.",
+				"type": "number"
+			},
+			"impact_estimation_ex_ante": {
+				"title": "Ex Ante Impact Estimation",
+				"description": "Ex ante estimated impact for first crediting period (in the indicator's unit of measure identified earlier):",
+				"type": "number"
+			}
+		},
+		"required": [
+			"intentionality",
+			"beneficial_or_adverse",
+			"description",
+			"monitored"
+		],
+		"additionalProperties": false,
+		"allOf": [
+			{
+				"if": {
+					"properties": {
+						"monitored": {
+							"const": "NO"
+						}
+					}
+				},
+				"then": {
+					"properties": {
+						"not_monitored_justification": {
+							"title": "Justification",
+							"description": "Why will this impact not be monitored?",
+							"type": "string"
+						}
+					},
+					"required": []
+				},
+				"else": {
+					"properties": {
+						"indicator": {
+							"title": "Indicator",
+							"description": "Describe the state indicator that will be used to measure the impact as a state difference:",
+							"type": "string"
+						},
+						"indicator_label": {
+							"title": "Label",
+							"description": "Provide a unique, short label for the indicator:",
+							"type": "string"
+						},
+						"indicator_unit_of_measure": {
+							"title": "Unit of Measure",
+							"description": "What is the unit of measure for the indicator?",
+							"type": "string"
+						},
+						"methodologies": {
+							"title": "Methodologies",
+							"description": "Which methodologies will you follow to monitor and/or quantify this impact?",
+							"type": "array",
+							"items": {
+								"$ref": "#MethodologyApplicability&3.0.0"
+							}
+						},
+						"additionality": {
+							"title": "Additionality",
+							"description": "Justify why you consider this impact to be additional:",
+							"type": "string"
+						},
+						"data_and_parameters": {
+							"title": "Supporting Data and Parameters",
+							"description": "What parameters will be monitored, or what data needs to be obtained, to enable the quantification of this impact?",
+							"type": "array",
+							"items": {
+								"$ref": "#(Table Row: Data/Parameter Monitoring)&1.0.0"
+							}
+						},
+						"crediting_period": {
+							"title": "Crediting Period",
+							"description": "When is the (first) credting period for this impact?",
+							"$ref": "#DateTimePeriod&1.0.0"
+						},
+						"crediting_period_type": {
+							"title": "Crediting Period Type",
+							"description": "Will this crediting period be renewable or non-renewable?",
+							"type": "string",
+							"enum": [
+								"RENEWABLE",
+								"NON_RENEWABLE"
+							]
+						},
+						"monitoring_periods": {
+							"title": "Monitoring Periods",
+							"description": "What will the monitoring periods be for the (first) crediting period of this impact?",
+							"type": "array",
+							"items": {
+								"$ref": "#DateTimePeriod&1.0.0"
+							}
+						},
+						"state_baseline": {
+							"title": "Baseline State",
+							"description": "What is the value of this indicator in the baseline state? Use the unit of measure identified earlier.",
+							"type": "number"
+						},
+						"state_project": {
+							"title": "Project State",
+							"description": "What is the value of this indicator in the project state? Provide it for the (first) crediting period and in the unit of measure identified earlier.",
+							"type": "number"
+						},
+						"impact_estimation_ex_ante": {
+							"title": "Ex Ante Impact Estimation",
+							"description": "Ex ante estimated impact for first crediting period (in the indicator's unit of measure identified earlier):",
+							"type": "number"
+						}
+					},
+					"required": []
+				}
+			}
+		],
+		"$defs": {}
+	}
+]

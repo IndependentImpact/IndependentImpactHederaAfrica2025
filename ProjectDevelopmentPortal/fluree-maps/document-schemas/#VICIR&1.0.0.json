@@ -1,0 +1,43 @@
+[
+	{
+		"title": "VIC Issuance Request (VIC-IR)",
+		"description": "Used by a project developer to request the issuance of a Verified Impact Certificate (VIC) from the Independent Impact Standards Body.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"id_msg_pred_drmr": {
+				"title": "Message ID of DR-MR",
+				"description": "Message ID of the 'Document Review: Monitoring Report' (DR-MR) that approved the project's 'Monitoring Report' (MR) for the monitoring period in question:",
+				"type": "string"
+			},
+			"url_ipfs_pred_drmr": {
+				"title": "IPFS URL of DR-MR",
+				"description": "IPFS URL of the 'Document Review: Monitoring Report' (DR-MR) that approved the project's 'Monitoring Report' (MR) for the monitoring period in question:",
+				"type": "string"
+			},
+			"summary_impact": {
+				"title": "Impact Summary",
+				"description": "The impact, as per the verified monitoring report:",
+				"$ref": "#ImpactSummary&1.0.0"
+			},
+			"id_acc_h": {
+				"title": "Account for Cetificate Issuance",
+				"description": "Hedera account to issue the Verified Impact Certificate (VIC) to:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"id_msg_pred_drmr",
+			"url_ipfs_pred_drmr",
+			"summary_impact",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

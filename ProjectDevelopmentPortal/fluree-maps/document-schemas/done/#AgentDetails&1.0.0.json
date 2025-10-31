@@ -1,0 +1,86 @@
+[
+	{
+		"title": "Agent Details (AD)",
+		"description": "Form to be completed by each agent who wishes to interact with any of the Independent Impact workflows.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"id_acc_h": {
+				"title": "Hedera Account ID",
+				"description": "Hedera account ID:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			},
+			"initials": {
+				"title": "Initials",
+				"description": "Initials:",
+				"type": "string"
+			},
+			"name_first": {
+				"title": "First Name",
+				"description": "First name:",
+				"type": "string"
+			},
+			"name_last": {
+				"title": "Last Name",
+				"description": "Last name:",
+				"type": "string"
+			},
+			"date_of_birth": {
+				"title": "Date of Birth",
+				"description": "Date of birth:",
+				"type": "string",
+				"format": "date"
+			},
+			"country": {
+				"title": "Country",
+				"description": "Country of residence:",
+				"type": "string"
+			},
+			"supporting_evidence_pp1": {
+				"title": "Supporting Evidence - PP 1",
+				"description": "Supporting evidence for personal particulars (initials, first name, last name, date of birth, country of residence):",
+				"type": "string"
+			},
+			"supporting_evidence_pp2": {
+				"title": "Supporting Evidence - PP 2",
+				"description": "Supporting evidence for personal particulars (initials, first name, last name, date of birth, country of residence):",
+				"type": "string"
+			},
+			"email_address": {
+				"title": "Email Address",
+				"description": "Email address:",
+				"type": "string"
+			},
+			"supporting_evidence_email": {
+				"title": "Supporting Evidence - Email Address",
+				"description": "Proof of ownership of email address:",
+				"type": "string"
+			},
+			"contact_number": {
+				"title": "Contact Number",
+				"description": "Contact number:",
+				"type": "string"
+			},
+			"supporting_evidence_contact_no": {
+				"title": "Supporting Evidence - Contact Number",
+				"description": "Proof of ownership of contact number:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"headers",
+			"id_acc_h",
+			"initials",
+			"name_last",
+			"date_of_birth",
+			"country",
+			"email_address"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

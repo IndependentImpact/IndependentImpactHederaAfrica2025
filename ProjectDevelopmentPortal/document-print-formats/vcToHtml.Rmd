@@ -1,0 +1,55 @@
+---
+output: html_document
+params:
+  docAsList: NULL
+  dfSchDef: NULL
+  schNm: NULL
+  schV: NULL
+  schDescr: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, results = "asis")
+```
+
+
+```{r}
+idx <- which(names(params$docAsList) == "credentialSubject")
+doc <- params$docAsList[[idx]][[1]]
+docMd <- params$docAsList[-idx]
+```
+
+## Document Metadata
+
+**Document ID:** `r docMd$id`  
+**Document Type:** `r docMd$type[[1]]`  
+**Issuer:** `r docMd$issuer`  
+**Date of Issuance:** `r docMd$issuanceDate`  
+**Contexts:**  
+[1] `r docMd[["@context"]][[1]]`  
+[2] `r docMd[["@context"]][[2]]`
+
+#### VC Proof
+
+**Type:** `r docMd$proof$type`  
+**Created:** `r docMd$proof$created`  
+**Verification Method:** `r docMd$proof$verificationMethod`  
+**Proof Purpose:** `r docMd$proof$proofPurpose`  
+**JWS:** `r docMd$proof$jws` 
+
+## Document Content
+
+```{r}
+cat(
+  sprintf("### %s (v%s)  \n", params$schNm, params$schV),
+  sprintf("%s  \n\n", params$schDescr))
+```
+
+```{r}
+for (k in 1:nrow(params$dfSchDef)) {
+  cat(sprintf("**%s**  \n", params$dfSchDef$title[k]),
+      sprintf("*%s*  \n", params$dfSchDef$description[k]),
+      doc[[params$dfSchDef$key[k]]],
+      "  \n\n")
+}
+```

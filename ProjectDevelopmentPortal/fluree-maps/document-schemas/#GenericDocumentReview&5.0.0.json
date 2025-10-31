@@ -1,0 +1,37 @@
+[
+	{
+		"title": "Generic Document Review",
+		"description": "Can be used to review any document.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"review": {
+				"title": "Review",
+				"description": "Review:",
+				"type": "array",
+				"items": {
+					"$ref": "#DocumentFieldReview&1.0.0"
+				}
+			},
+			"final_rd": {
+				"title": "Final Reviewer Decision",
+				"description": "(Calculated internally)",
+				"type": "string",
+				"enum": [
+					"APPROVE",
+					"REJECT"
+				]
+			}
+		},
+		"required": [
+			"headers",
+			"review",
+			"final_rd"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

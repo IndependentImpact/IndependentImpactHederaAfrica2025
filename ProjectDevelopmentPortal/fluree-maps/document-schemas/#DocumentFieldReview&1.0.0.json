@@ -1,0 +1,54 @@
+[
+	{
+		"title": "Document Field Review",
+		"description": "Used to review a single field of a document.",
+		"properties": {
+			"field_key": {
+				"title": "Field Key",
+				"description": "Key of the document field under review:",
+				"type": "string"
+			},
+			"field_title": {
+				"title": "Field Title",
+				"description": "Title of the document field under review:",
+				"type": "string"
+			},
+			"field_prompt": {
+				"title": "Field Prompt",
+				"description": "Original prompt to the document field under review:",
+				"type": "string"
+			},
+			"original_response": {
+				"title": "Original Response",
+				"description": "Author's response to the document field under review:",
+				"type": "string"
+			},
+			"reviewer_decision": {
+				"title": "Reviewer Decision",
+				"description": "Outcome of reviewer's evaluation of the author's response to the document field under review:",
+				"type": "string",
+				"enum": [
+					"APPROVE",
+					"FORWARD_ACTION_REQUEST",
+					"CORRECTIVE_ACTION_REQUEST",
+					"REJECT"
+				]
+			},
+			"reviewer_feedback": {
+				"title": "Reviewer Feedback",
+				"description": "Reviewer's feedback on the author's response to the document field under review:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"field_key",
+			"field_title",
+			"field_prompt",
+			"original_response",
+			"reviewer_decision",
+			"reviewer_feedback"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

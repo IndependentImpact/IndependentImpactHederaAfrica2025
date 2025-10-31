@@ -1,0 +1,68 @@
+---
+output: html_document
+params:
+  docAsList: NULL
+  contentOnly: FALSE
+  gSchemaId: NULL
+  gBaseUrl: NULL
+  sbRefreshTkn: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, results = "asis")
+```
+
+
+```{r}
+idx <- which(names(params$docAsList) == "credentialSubject")
+doc <- params$docAsList[[idx]][[1]]
+docMd <- params$docAsList[-idx]
+```
+
+## Document Metadata
+
+**Document ID:** `r docMd$id`  
+**Document Type:** `r docMd$type[[1]]`  
+**Issuer:** `r docMd$issuer`  
+**Date of Issuance:** `r docMd$issuanceDate`  
+**Contexts:**  
+[1] `r docMd[["@context"]][[1]]`  
+[2] `r docMd[["@context"]][[2]]`
+
+#### VC Proof
+
+**Type:** `r docMd$proof$type`  
+**Created:** `r docMd$proof$created`  
+**Verification Method:** `r docMd$proof$verificationMethod`  
+**Proof Purpose:** `r docMd$proof$proofPurpose`  
+**JWS:** `r docMd$proof$jws` 
+
+```{r}
+sch <- Guardener::GgetSchema(
+  schemaId = params$gSchemaId, 
+  baseurl = params$gBaseUrl,
+  refreshToken = params$sbRefreshTkn)
+
+dfSch <- schemaToDf(schema = sch, defs = TRUE)
+```
+
+## Document Content
+
+```{r}
+
+cat(
+  sprintf("### %s (v%s)  \n", sch$name, sch$version),
+  sprintf("%s  \n\n", sch$description))
+```
+
+```{r}
+for (k in 1:nrow(dfSch)) {
+  cat(sprintf("**%s**  \n", dfSch$title[k]),
+      sprintf("*%s*  \n", dfSch$description[k]),
+      doc[[dfSch$key[k]]],
+      "  \n\n")
+}
+```
+
+ 
+

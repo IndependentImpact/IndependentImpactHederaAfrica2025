@@ -1,0 +1,127 @@
+[
+	{
+		"title": "Table Row: Data/Parameter Monitoring",
+		"description": "Table row description of data or parameters monitored/not monitored.",
+		"properties": {
+			"label": {
+				"title": "Label",
+				"description": "Please provide a unique label for this parameter or data point:",
+				"type": "string"
+			},
+			"unit_of_measure": {
+				"title": "Unit of Measure",
+				"description": "Unit of measure:",
+				"type": "string"
+			},
+			"description": {
+				"title": "Description",
+				"description": "Description:",
+				"type": "string"
+			},
+			"purpose": {
+				"title": "Purpose",
+				"description": "Purpose of data or parameter:",
+				"type": "string"
+			},
+			"monitored_or_fixed": {
+				"title": "Monitored or Fixed",
+				"description": "Will this parameter / data point be monitored or will it be fixed ex-ante?",
+				"type": "string",
+				"enum": [
+					"MONITORED",
+					"FIXED_EXANTE"
+				]
+			},
+			"value_applied": {
+				"title": "Value Applied",
+				"description": "What value will be used for this parameter or data point?",
+				"type": "number"
+			},
+			"data_source": {
+				"title": "Data Source",
+				"description": "How or where was this value obtained?",
+				"type": "string"
+			},
+			"measurement_methods_and_procedures": {
+				"title": "Measurement Methods and Procedures",
+				"description": "Describe the methods and procedures that you will use or follow to monitor this parameter / obtain this data:",
+				"type": "string"
+			},
+			"qa_qc_procedures": {
+				"title": "Quality Control and Assurance",
+				"description": "QA/QC procedures:",
+				"type": "string"
+			},
+			"monitoring_frequency": {
+				"title": "Monitoring Frequency",
+				"description": "Monitoring frequency:",
+				"type": "string"
+			},
+			"sampling_plan": {
+				"title": "Sampling Plan",
+				"description": "Sampling plan:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"label",
+			"unit_of_measure",
+			"description",
+			"purpose",
+			"monitored_or_fixed"
+		],
+		"additionalProperties": false,
+		"allOf": [
+			{
+				"if": {
+					"properties": {
+						"monitored_or_fixed": {
+							"const": "FIXED_EXANTE"
+						}
+					}
+				},
+				"then": {
+					"properties": {
+						"value_applied": {
+							"title": "Value Applied",
+							"description": "What value will be used for this parameter or data point?",
+							"type": "number"
+						},
+						"data_source": {
+							"title": "Data Source",
+							"description": "How or where was this value obtained?",
+							"type": "string"
+						}
+					},
+					"required": []
+				},
+				"else": {
+					"properties": {
+						"measurement_methods_and_procedures": {
+							"title": "Measurement Methods and Procedures",
+							"description": "Describe the methods and procedures that you will use or follow to monitor this parameter / obtain this data:",
+							"type": "string"
+						},
+						"qa_qc_procedures": {
+							"title": "Quality Control and Assurance",
+							"description": "QA/QC procedures:",
+							"type": "string"
+						},
+						"monitoring_frequency": {
+							"title": "Monitoring Frequency",
+							"description": "Monitoring frequency:",
+							"type": "string"
+						},
+						"sampling_plan": {
+							"title": "Sampling Plan",
+							"description": "Sampling plan:",
+							"type": "string"
+						}
+					},
+					"required": []
+				}
+			}
+		],
+		"$defs": {}
+	}
+]

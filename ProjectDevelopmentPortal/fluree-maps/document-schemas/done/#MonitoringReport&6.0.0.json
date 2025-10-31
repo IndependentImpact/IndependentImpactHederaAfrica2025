@@ -1,0 +1,76 @@
+[
+	{
+		"title": "Monitoring Report (MR)",
+		"description": "",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"indicator_label": {
+				"title": "Indicator",
+				"description": "The label of the impact indicator in question:",
+				"type": "string"
+			},
+			"monitoring_period": {
+				"title": "Monitoring Period",
+				"description": "Provide the start and end dates and times that demarcate the monitoring period in question:",
+				"$ref": "#DateTimePeriod&1.0.0"
+			},
+			"datasets": {
+				"title": "Datasets",
+				"description": "The datasets used in the calculation of the project's impact during this monitoring period and in terms of this indicator:",
+				"type": "array",
+				"items": {
+					"$ref": "#Dataset&1.0.0"
+				}
+			},
+			"ipfs_uri_rmd_calculation": {
+				"title": "Calculation RMD IPFS URI",
+				"description": "IPFS URI of the RMD that performed the impact calculation:",
+				"type": "string"
+			},
+			"ipfs_uri_impact": {
+				"title": "Impact Answer IPFS URI",
+				"description": "IPFS URI of the result of the impact calculation:",
+				"type": "string"
+			},
+			"ipfs_uri_report_calculation": {
+				"title": "Calculation Report IPFS URI",
+				"description": "IPFS URI of the report produced by the RMD that performed the impact calculation:",
+				"type": "string"
+			},
+			"value_impact": {
+				"title": "Impact Answer",
+				"description": "Numeric value of the calculated impact:",
+				"type": "number"
+			},
+			"unit_impact": {
+				"title": "Unit of Measure",
+				"description": "The unit of measure for the calculated impact:",
+				"type": "string"
+			},
+			"id_acc_h": {
+				"title": "Hedera Account ID",
+				"description": "Hedera account ID to issue tokens to:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"indicator_label",
+			"monitoring_period",
+			"datasets",
+			"ipfs_uri_rmd_calculation",
+			"ipfs_uri_impact",
+			"ipfs_uri_report_calculation",
+			"value_impact",
+			"unit_impact",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

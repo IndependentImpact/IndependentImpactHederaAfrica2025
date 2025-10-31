@@ -1,0 +1,67 @@
+[
+	{
+		"title": "Data Lineage Report (DLR)",
+		"description": "",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"name_dataset": {
+				"title": "Dataset Name",
+				"description": "Name of dataset:",
+				"type": "string",
+			},
+			"monitoring_period": {
+				"title": "Monitoring Period",
+				"description": "The monitoring period that this dataset belongs to:",
+				"$ref": "#DateTimePeriod&1.0.0"
+			},
+			"uri_ipfs_data_raw": {
+				"title": "Raw Dataset IPFS URI",
+				"description": "IPFS URI of the raw (but anonymised) data:",
+				"type": "string",
+			},
+			"uri_ipfs_report_transfer": {
+				"title": "Transfer Report IPFS URI",
+				"description": "IPFS URI of the report produced by the RMD that performed the transfer (and anonymisation, if applicable) of the raw data from source to IPFS:",
+				"type": "string"
+			},
+			"uri_ipfs_rmd_transfer": {
+				"title": "Transfer RMD IPFS URI",
+				"description": "IPFS URI of the RMD that performed the transfer (and anonymisation, if applicable) of the raw data from source to IPFS:",
+				"type": "string"
+			},
+			"uri_ipfs_data_final": {
+				"title": "Final Dataset IPFS URI",
+				"description": "IPFS URI of final version of processed dataset:",
+				"type": "string"
+			},
+			"uri_ipfs_rmd_cleaning": {
+				"title": "Cleaning RMD IPFS URI",
+				"description": "IPFS URI of the RMD that processed (cleaned, corrected, etc.) the data and produced the final dataset:",
+				"type": "string"
+			},
+			"uri_ipfs_report_cleaning": {
+				"title": "Cleaning Report IPFS URI",
+				"description": "IPFS URI of the report produced by the RMD that processed (cleaned, corrected, etc.) the data and produced the final dataset:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"headers",
+			"name_dataset",
+			"monitoring_period",
+			"uri_ipfs_data_raw",
+			"uri_ipfs_report_transfer",
+			"uri_ipfs_rmd_transfer",
+			"uri_ipfs_data_final",
+			"uri_ipfs_rmd_cleaning",
+			"uri_ipfs_report_cleaning"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	},
+	"context": {}
+]

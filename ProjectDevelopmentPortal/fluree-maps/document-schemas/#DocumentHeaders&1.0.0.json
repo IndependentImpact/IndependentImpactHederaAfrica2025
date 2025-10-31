@@ -1,0 +1,46 @@
+[
+	{
+		"title": "Document Headers",
+		"description": "Captures information about the document's predecessor and submittor.",
+		"properties": {
+			"id_msg_pred": {
+				"title": "Message ID of Predecessor",
+				"description": "Message ID of the document that preceded this document:",
+				"type": "string"
+			},
+			"url_ipfs_pred": {
+				"title": "IPFS URL of Predecessor",
+				"description": "IPFS URL of the document that preceded this document:",
+				"type": "string"
+			},
+			"id_msg_lic": {
+				"title": "Message ID of Submittor License",
+				"description": "Message ID of the relevant license of the submittor of this document:",
+				"type": "string"
+			},
+			"url_ipfs_lic": {
+				"title": "IPFS URL of Submittor License",
+				"description": "IPFS URL of the relevant license of the submittor of this document:",
+				"type": "string"
+			},
+			"id_subject": {
+				"title": "Subject ID",
+				"description": "ID of the subject of this document (e.g., project ID or agent ID):",
+				"type": "string"
+			},
+			"type_subject": {
+				"title": "Subject Type",
+				"description": "Type of the subject of this document:",
+				"type": "string",
+				"enum": [
+					"PROJECT",
+					"AGENT"
+				]
+			}
+		},
+		"required": [
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

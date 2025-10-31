@@ -1,0 +1,52 @@
+[
+	{
+		"title": "Technology or Measure",
+		"description": "",
+		"properties": {
+			"type_techmeas": {
+				"title": "Type",
+				"description": "Type of technology or measure:",
+				"type": "string",
+				"enum": [
+					"FACILITY",
+					"SYSTEM",
+					"EQUIPMENT",
+					"OTHER"
+				]
+			},
+			"type_techmeas_otherexplain": {
+				"title": "Type Explanation",
+				"description": "Please explain what type of technology or measure this is:",
+				"type": "string"
+			},
+			"description": {
+				"title": "Description",
+				"description": "Please describe the technology or measure to be implemented:",
+				"type": "string"
+			},
+			"age_current": {
+				"title": "Current Age",
+				"description": "Current age (in years)",
+				"type": "number"
+			},
+			"lifespan_estimated": {
+				"title": "Estimated Lifespan",
+				"description": "Estimated lifespan (in years) according to manufacturer's specifications and industry standards:",
+				"type": "number"
+			},
+			"info_additional": {
+				"title": "Additional Information",
+				"description": "Additional information, as relevant:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"type_techmeas",
+			"description",
+			"age_current",
+			"lifespan_estimated"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

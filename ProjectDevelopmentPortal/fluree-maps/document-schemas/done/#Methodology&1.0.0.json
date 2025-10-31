@@ -1,0 +1,30 @@
+[
+	{
+		"title": "Methodology",
+		"description": "Used to provide details about a quantification methodology.",
+		"properties": {
+			"title": {
+				"title": "Title",
+				"description": "Title of the methodology:",
+				"type": "string"
+			},
+			"label": {
+				"title": "Label",
+				"description": "Label for the methodology (e.g., ACM0002):",
+				"type": "string"
+			},
+			"version": {
+				"title": "Version",
+				"description": "Version of the methodology used:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"title",
+			"label",
+			"version"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

@@ -1,0 +1,53 @@
+[
+	{
+		"title": "Project Party",
+		"description": "To be used to identify the project parties and participants in PDD Section A.",
+		"properties": {
+			"name": {
+				"title": "Name",
+				"description": "Name of party:",
+				"type": "string"
+			},
+			"is_host": {
+				"title": "Host Status",
+				"description": "Is this party a host party?",
+				"type": "string",
+				"enum": [
+					"YES",
+					"NO"
+				]
+			},
+			"public_private": {
+				"title": "Type",
+				"description": "Is this a public or a private party?",
+				"type": "string",
+				"enum": [
+					"PUBLIC",
+					"PRIVATE"
+				]
+			},
+			"is_participant": {
+				"title": "Participant Status",
+				"description": "Should this party be considered a project participant?",
+				"type": "string",
+				"enum": [
+					"YES",
+					"NO"
+				]
+			},
+			"info_additional": {
+				"title": "Additional Information",
+				"description": "Provide any additional information about the party, as necessary:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"name",
+			"is_host",
+			"public_private",
+			"is_participant"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

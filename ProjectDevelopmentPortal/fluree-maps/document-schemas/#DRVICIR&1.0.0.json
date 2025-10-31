@@ -1,0 +1,44 @@
+[
+	{
+		"title": "Document Review: VIC Issuance Request",
+		"description": "Used to review a VIC Issuance Request.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"review": {
+				"title": "Review",
+				"description": "Review:",
+				"type": "array",
+				"items": {
+					"$ref": "#DocumentFieldReview&1.0.0"
+				}
+			},
+			"final_rd": {
+				"title": "Final Reviewer Decision",
+				"description": "(Calculated internally)",
+				"type": "string",
+				"enum": [
+					"APPROVE",
+					"REJECT"
+				]
+			},
+			"id_acc_h": {
+				"title": "Hedera Account ID",
+				"description": "ID of the Hedera account to which the VIC should be issued, if the issuance is approved.",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"review",
+			"final_rd",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

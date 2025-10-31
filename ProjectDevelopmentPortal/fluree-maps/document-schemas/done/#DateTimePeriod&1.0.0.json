@@ -1,0 +1,24 @@
+[
+	{
+		"title": "Date-Time Period",
+		"description": "",
+		"properties": {
+			"datetime_start": {
+				"title": "Start Date and Time",
+				"description": "The date and time that mark the start of the period, as an ISO 8601 string:",
+				"type": "string"
+			},
+			"datetime_end": {
+				"title": "End Date and Time",
+				"description": "The date and time that mark the end of the period, as an ISO 8601 string:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"datetime_start",
+			"datetime_end"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

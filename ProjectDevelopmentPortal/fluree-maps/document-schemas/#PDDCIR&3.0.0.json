@@ -1,0 +1,62 @@
+[
+	{
+		"title": "PDD Certificate Issuance Request (CIR)",
+		"description": "Used by project developers to request an II-VCERT-PDD for their project once all the individual PDD sections of their project's PDD have passed validation.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"id_msg_pred_drxa": {
+				"title": "Message ID of DR-PDD-XA",
+				"description": "Message ID of PDD Section A validation report (DR-PDD-XA):",
+				"type": "string"
+			},
+			"url_ipfs_pred_drxa": {
+				"title": "IPFS URL of DR-PDD-XA",
+				"description": "IPFS URL of PDD Section A validation report (DR-PDD-XA):",
+				"type": "string"
+			},
+			"id_msg_pred_drxb": {
+				"title": "Message ID of DR-PDD-XB",
+				"description": "Message ID of PDD Section B validation report (DR-PDD-XB):",
+				"type": "string"
+			},
+			"url_ipfs_pred_drxb": {
+				"title": "IPFS URL of DR-PDD-XB",
+				"description": "IPFS URL of PDD Section B validation report (DR-PDD-XB):",
+				"type": "string"
+			},
+			"id_msg_pred_drxc": {
+				"title": "Message ID of DR-PDD-XC",
+				"description": "Message ID of PDD Section C validation report (DR-PDD-XC):",
+				"type": "string"
+			},
+			"url_ipfs_pred_drxc": {
+				"title": "IPFS URL of DR-PDD-XC",
+				"description": "IPFS URL of PDD Section C validation report (DR-PDD-XC):",
+				"type": "string"
+			},
+			"id_acc_h": {
+				"title": "Account for Issuance",
+				"description": "Hedera ID of the account against which the certificate must be issued:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"id_msg_pred_drxa",
+			"url_ipfs_pred_drxa",
+			"id_msg_pred_drxb",
+			"url_ipfs_pred_drxb",
+			"id_msg_pred_drxc",
+			"url_ipfs_pred_drxc",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	},
+	"context": {}
+]

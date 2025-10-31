@@ -1,0 +1,36 @@
+[
+	{
+		"title": "Dataset",
+		"description": "",
+		"properties": {
+			"name_dataset": {
+				"title": "Dataset Name",
+				"description": "Name of dataset:",
+				"type": "string"
+			},
+			"id_msg_drdlr": {
+				"title": "Message ID of DR-DLR",
+				"description": "Message ID of Document Review: Data Lineage Report that approved the final version of the dataset:",
+				"type": "string"
+			},
+			"uri_ipfs_drdlr": {
+				"title": "IPFS URI of DR-DLR",
+				"description": "IPFS URI of Document Review: Data Lineage Report that approved the final version of the dataset:",
+				"type": "string"
+			},
+			"uri_ipfs_dataset_final": {
+				"title": "IPFS URI of Final Dataset",
+				"description": "IPFS URI of the final, approved version of the processed dataset:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"name_dataset",
+			"id_msg_drdlr",
+			"uri_ipfs_drdlr",
+			"uri_ipfs_dataset_final"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

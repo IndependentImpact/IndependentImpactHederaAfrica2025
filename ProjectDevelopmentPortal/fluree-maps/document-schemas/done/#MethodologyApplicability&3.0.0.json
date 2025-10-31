@@ -1,0 +1,24 @@
+[
+	{
+		"title": "Methodology Applicability",
+		"description": "Used to explain why a chosen methodology is applicable to the quantification use case in question.",
+		"properties": {
+			"methodology": {
+				"title": "Methodology",
+				"description": "Methodology:",
+				"$ref": "Methodology&1.0.0"
+			},
+			"applicability": {
+				"title": "Applicability",
+				"description": "Why is the indicated methodology applicable to the use case?",
+				"type": "string"
+			}
+		},
+		"required": [
+			"methodology",
+			"applicability"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

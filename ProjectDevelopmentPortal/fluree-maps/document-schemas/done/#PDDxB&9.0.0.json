@@ -1,0 +1,28 @@
+[
+	{
+		"title": "PDD Section B - Methodologies (PDD-XB)",
+		"description": "PDD Section B: Application of methodologies and baselines.",
+		"type": "object",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"impacts": {
+				"title": "Impacts",
+				"description": "Provide the following information for each of the impacts of the project:",
+				"type": "array",
+				"items": {
+					"$ref": "#Impact&3.0.0"
+				}
+			}
+		},
+		"required": [
+			"headers",
+			"impacts"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

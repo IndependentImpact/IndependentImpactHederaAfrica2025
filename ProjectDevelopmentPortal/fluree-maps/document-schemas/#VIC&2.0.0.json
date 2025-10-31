@@ -1,0 +1,54 @@
+[
+	{
+		"title": "Independent Impact Verified Impact Certificate",
+		"description": "",
+		"properties": {
+			"indicator_impact": {
+				"title": "Impact Indicator",
+				"description": "The label for the indicator used to report the impact:",
+				"type": "string"
+			},
+			"unit_impact": {
+				"title": "Unit of Measure",
+				"description": "The unit of measure for the impact:",
+				"type": "string"
+			},
+			"extent_impact": {
+				"title": "Impact Extent",
+				"description": "The extent or magnitude of the impact:",
+				"type": "number"
+			},
+			"period_impact": {
+				"title": "Impact Period",
+				"description": "The period during which the impact occurred:",
+				"$ref": "#DateTimePeriod&1.0.0"
+			},
+			"id_msg_drmr": {
+				"title": "DR-MR Message ID",
+				"description": "ID of the Hedera message that published the approving review of the monitoring report for the monitoring period in question:",
+				"type": "string"
+			},
+			"uri_ipfs_drmr": {
+				"title": "DR-MR IPFS URI",
+				"description": "IPFS URI of the approving review of the monitoring report for the monitoring period in question:",
+				"type": "string"
+			},
+			"certificate_number": {
+				"title": "Certificate Number",
+				"description": "The identification number for this Verified Impact Certificate",
+				"type": "string"
+			}
+		},
+		"required": [
+			"indicator_impact",
+			"unit_impact",
+			"extent_impact",
+			"period_impact",
+			"id_msg_drmr",
+			"uri_ipfs_drmr",
+			"certificate_number"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

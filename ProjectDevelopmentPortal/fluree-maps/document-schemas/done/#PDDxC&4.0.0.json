@@ -1,0 +1,34 @@
+[
+	{
+		"title": "PDD Section C - Stakeholder Engagement (PDD-XC)",
+		"description": "Local stakeholder consultation",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"modalities": {
+				"title": "Modalities",
+				"description": "Modalities for local stakeholder consultation:",
+				"type": "string"
+			},
+			"summary_comments": {
+				"title": "Comments Summary",
+				"description": "Summary of comments received:",
+				"type": "string"
+			},
+			"consideration_comments": {
+				"title": "Comments Consideration",
+				"description": "Consideration of comments received:",
+				"type": "string"
+			}
+		},
+		"required": [
+			"headers",
+			"modalities"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

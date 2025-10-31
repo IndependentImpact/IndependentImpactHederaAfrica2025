@@ -1,0 +1,36 @@
+[
+	{
+		"title": "License Application (LA)",
+		"description": "Used by agents to apply for specific roles in the Tolam Improved Cookstove Policy.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"license": {
+				"title": "License",
+				"description": "Which license do you wish to apply for?",
+				"type": "string",
+				"enum": [
+					"PROJECT_DEVELOPER",
+					"PDD_VALIDATOR",
+					"MR_VERIFIER"
+				]
+			},
+			"id_acc_h": {
+				"title": "Hedera Account ID",
+				"description": "Hedera account ID of applicant:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"license",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

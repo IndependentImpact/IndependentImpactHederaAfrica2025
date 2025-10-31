@@ -1,0 +1,36 @@
+[
+	{
+		"title": "Project Listing Application (PLA)",
+		"description": "Used by a project developer to request the listing of a project in the registry of the Independent Impact Standards Body.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"title_project": {
+				"title": "Project Title",
+				"description": "Title of the project:",
+				"type": "string"
+			},
+			"location_project": {
+				"title": "Project Location",
+				"description": "Where will the project take place? (Country, state or province, and city or town or village.)",
+				"type": "string"
+			},
+			"purpose_project": {
+				"title": "Project Purpose",
+				"description": "What is the purpose of the project?",
+				"type": "string"
+			}
+		},
+		"required": [
+			"headers",
+			"title_project",
+			"location_project",
+			"purpose_project"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]

@@ -1,0 +1,64 @@
+[
+	{
+		"title": "Document Review: License Application",
+		"description": "Used by a reviewer to review an agent's application for a specific Independent Impact license.",
+		"properties": {
+			"headers": {
+				"title": "Headers",
+				"description": "Document headers:",
+				"$ref": "#DocumentHeaders&1.0.0"
+			},
+			"final_rd": {
+				"title": "Final Reviewer Decision",
+				"description": "Final reviewer decision:",
+				"type": "string",
+				"enum": [
+					"APPROVE",
+					"REJECT"
+				]
+			},
+			"commentary_r": {
+				"title": "Reviewer Commentary",
+				"description": "Reviewer commentary:",
+				"type": "string"
+			},
+			"id_msg_drad": {
+				"title": "DR-AD Message ID",
+				"description": "Message ID of review of agent details:",
+				"type": "string"
+			},
+			"url_ipfs_drad": {
+				"title": "DR-AD IPFS URL",
+				"description": "IPFS URL of review of agent details:",
+				"type": "string"
+			},
+			"license": {
+				"title": "License",
+				"description": "License applied for:",
+				"type": "string",
+				"enum": [
+					"PROJECT_DEVELOPER",
+					"PDD_VALIDATOR",
+					"MR_VERIFIER"
+				]
+			},
+			"id_acc_h": {
+				"title": "Hedera Account ID",
+				"description": "Hedera account ID to which the license must be issued, if approved:",
+				"type": "string",
+				"pattern": "^\\d+\\.\\d+\\.\\d+$"
+			}
+		},
+		"required": [
+			"headers",
+			"final_rd",
+			"commentary_r",
+			"id_msg_drad",
+			"url_ipfs_drad",
+			"license",
+			"id_acc_h"
+		],
+		"additionalProperties": false,
+		"$defs": {}
+	}
+]
