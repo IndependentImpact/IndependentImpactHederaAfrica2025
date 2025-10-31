@@ -5,7 +5,7 @@ This repository contains a submission for the 2025 Hedera Africa Hackathon
 ## Project Title & Track
 - **Title:** Independent Impact
 - **Hackathon Track:** 2. DLT for Operations
-- **Pitch Deck:** _Replace this placeholder with the public link to your latest deck before submission._
+- **Pitch Deck:** PitchDeck.pdf
 - **Hashgraph Developer Course Certification:** [Christiaan Pauw's certificate](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
 
 ## Repository Overview
