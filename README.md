@@ -167,6 +167,9 @@ We have created and open-sourced a Hedera library for interacting with the mirro
 Every recorded action—project creation, reviewer commentary, or certificate issuance—maps to deterministic Hedera micro-fees noted in the protocol documentation.【F:Protocol/11-a-TechnicalImplementation.md†L5-L17】 Combined with ABFT finality and 10k+ TPS capacity, these stable costs let Independent Impact subsidise onboarding for smaller African developers today and scale to national programmes without renegotiating treasury budgets.
 
 ## Deployment & Setup Instructions
+
+The Project Development Portal is currently running on testnet at https://app.independentimpact.org. The `Fruit Tree Project` by user `rirhandzunovela@nova.org.za` is a real climate change adaptation project with actual monitoring data. This demonstrates that the platform is fully functional for a fairly complex real-life use case. 
+
 1. **Clone the repository**
    ```bash
    git clone https://github.com/IndependentImpact/IndependentImpactHederaAfrica2025.git
