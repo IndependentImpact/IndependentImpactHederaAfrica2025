@@ -6,7 +6,7 @@ This repository contains a submission for the 2025 Hedera Africa Hackathon
 - **Title:** Independent Impact
 - **Hackathon Track:** 2. DLT for Operations
 - **Pitch Deck:** _Replace this placeholder with the public link to your latest deck before submission._
-- **Certification Link:** [Christiaan Pauw certificate](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
+- **Hashgraph Developer Course Certification:** [Christiaan Pauw's certificate](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
 
 ## Repository Overview
 ### Project Development Portal (primary focus)
@@ -23,9 +23,9 @@ A user registration and verification process establishes an Hedera (currently te
 
 Once a user and project have been established, three project-related workflows follow:
 
-* Main Workflow 
-* Monitoring Verification Workflow 
+* Main Workflow
 * PDD Validation Workflow 
+* Monitoring Verification Workflow 
 
 #### Running the application
 
@@ -37,15 +37,19 @@ Hedera-specific operations cover creating project topics, registering DID-backed
 
 ### GHG methodologies
 `GHG_methodologies/` packages the top UNFCCC CDM methodologies as installable R libraries, with curated references, pkgdown-ready vignettes, and coverage across renewable energy, efficiency, and waste management methodologies for both small- and large-scale projects.【F:GHG_methodologies/README.md†L1-L135】 These packages inform the quantification logic surfaced inside the portal workflows.
+
 Documentation is hosted on https://independentimpact.github.io/GHG_methodologies/. 
 
-### Data Explorer
-`IIchatbot/` provides a Docker Compose stack combining a Fluree MCP server, a Streamlit analyst UI, and an Nginx front end for Model Context Protocol interactions with ledger data.【F:IIchatbot/README.md†L1-L68】【F:IIchatbot/docker-compose.yml†L1-L50】 It supports analysts who need conversational access to the same datasets powering the portal.
+These methodologies are ready to use within the Monitoring Verification Workflow to prepare reproducible monitoring reports using Jellyfish. 
 
-The explorer is live at chat.independentimpact.org. 
+### Data Explorer
+
+`IIchatbot/` provides a Docker Compose stack combining a Fluree MCP server, a Streamlit analyst UI, and an Nginx front end for Model Context Protocol interactions with Fluree ledger data.【F:IIchatbot/README.md†L1-L68】【F:IIchatbot/docker-compose.yml†L1-L50】 It supports analysts who need conversational access to the same datasets powering the portal.
+
+The explorer is live at https://chat.independentimpact.org. A users OpenAI API key is currently required
 
 ### Protocol
-`Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17】
+`Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17. This will form the basis for the subsequent full implementation of the reputation system. 
 
 ## Hedera Integration Summary
 
@@ -57,7 +61,7 @@ The Independent Impact platform uses Hedera Consensus Service for immutable, ver
 
 Why HCS:
 
-- Fast consensus (2–5 seconds): Ideal for fast-paced workflows, such as ground-truthing where verifiers cannot wait extended periods for confirmation from the system that their submissions have been "accepted" into the ledger.
+- Fast consensus (2–5 seconds): Ideal for fast-paced workflows, such as ground-truthing, where verifiers cannot wait extended periods for confirmation from the system that their submissions have been "accepted" into the ledger.
 
 - Efficient topic-based messaging: Devices on the network subscribe only to relevant “topics,” reducing bandwidth and power consumption — essential for limited-connectivity and energy-constrained environments like rural Africa.
 
@@ -65,7 +69,7 @@ Why HCS:
 
 - Message-based pricing: Costs depend on message count, not data size, which fits our architecture — we only need a consensus service to anchor data hashes in a timeline, while full data resides in Fluree and IPFS.
 
-#### 2. Hedera Token Service (HTS) (implementation in-progress)
+#### 2. Hedera Token Service (HTS) (implementation in progress)
 
 HTS underpins two major components of the Independent Impact platform:  
 - agent reputation
@@ -102,7 +106,7 @@ How it works:
 
 - A bounty creator locks funds and defines the task and agent reputation requirements.
 
-- Eligible agents (i.e., those meeting reputation criteria) can fulfill the task to receive payment.
+- Eligible agents (i.e., those meeting reputation criteria) can fulfil the task to receive payment.
 
 - Bounties can incentivise many different actions, such as data collection, information validation, or indicator creation.
 
@@ -112,7 +116,7 @@ Please refer to our [Protocol](https://github.com/IndependentImpact/Protocol/blo
 
 ### Hedera Transaction Types Used
 
-The platform will at maturity use virtually all the Hedera transaction types for accounts, consensus, smart contracts and tokens. Our proof-of-concept currently uses the following three:
+The platform will, at maturity, use virtually all the Hedera transaction types for accounts, consensus, smart contracts and tokens. Our proof-of-concept currently uses the following three:
 
 `AccountCreateTransaction()`  
 `TopicCreateTransaction()`  
@@ -124,7 +128,7 @@ Hedera provides the optimal economic foundation for the Independent Impact platf
 
 Furthermore, Hedera Consensus Service’s message-based (as opposed to data-based) pricing enables us to immutably record events without paying for full data storage — a critical efficiency given that our platform only needs to anchor hashes while storing complete data off-chain in Fluree and IPFS. The Token Service similarly provides a low-cost mechanism for representing and transferring tokens, supporting the tokenisation of reputation and impact claims without imposing heavy administrative overhead. Compared with traditional registries or higher-cost blockchains, these efficiencies directly translate to more funds reaching actual impact activities instead of being consumed by administrative or network fees.
 
-Finally, Hedera’s energy efficiency and carbon-negative operations reduce environmental externalities and align perfectly with Independent Impact’s mission. The network’s low energy footprint ensures that tokenising and verifying impact outcomes remains consistent with the values the platform seeks to promote — transparency, accountability, and sustainability delivered at minimal cost.
+Finally, Hedera’s energy efficiency and carbon-negative operations reduce environmental externalities and align perfectly with Independent Impact’s mission. The network’s low energy footprint ensures that tokenising and verifying impact outcomes remain consistent with the values the platform seeks to promote — transparency, accountability, and sustainability delivered at minimal cost.
 
 ### Other Hedera components used
 
@@ -157,27 +161,33 @@ Methods used:
 
 We have created and open-sourced a Hedera library for interacting with the mirror nodes from within R (https://github.com/Jellyfi3sh/hedera/tree/main). We use this library extensively to query Hedera mirror nodes.
 
-
 ### Economic Justification
 Every recorded action—project creation, reviewer commentary, or certificate issuance—maps to deterministic Hedera micro-fees noted in the protocol documentation.【F:Protocol/11-a-TechnicalImplementation.md†L5-L17】 Combined with ABFT finality and 10k+ TPS capacity, these stable costs let Independent Impact subsidise onboarding for smaller African developers today and scale to national programmes without renegotiating treasury budgets.
 
 ## Deployment & Setup Instructions
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/<your-org>/IndependentImpactHederaAfrica2025.git
+   git clone https://github.com/IndependentImpact/IndependentImpactHederaAfrica2025.git
    cd IndependentImpactHederaAfrica2025
    ```
 2. **Install R dependencies**: Ensure R 4.3+ is available, then install the packages referenced in `template_global.R` (`shiny`, `shinyjs`, `shinythemes`, `tidyr`, `tibble`, `httr`, `RJDBC`, `RPostgreSQL`, `PKI`, `plotly`, `hedera`, `jellyfi3shR`, `logger`, `sf`, `leaflet`, `novaRush`, `reticulate`, `plyr`).【F:ProjectDevelopmentPortal/template_global.R†L16-L43】
+
+Contact info@jellyfiiish.xyz to request permission to access the jellyfi3shR package. 
+
 3. **Prepare Python environment**: Create a virtual environment and install the Hiero SDK dependencies listed in `scripts/setup.R` (`protobuf>=5.27,<5.29`, `hiero-did-sdk-python`, `hiero-sdk-python`, `requests`, `python-dotenv`). Record the interpreter path for later use.【F:ProjectDevelopmentPortal/scripts/setup.R†L3-L8】
-4. **Configure `global.R`**: Copy `ProjectDevelopmentPortal/template_global.R` to `ProjectDevelopmentPortal/global.R`, replace every `REPLACE_ME` placeholder with your local paths, Postgres host, database, and port, and confirm `hederaNetwork` stays on `testnet`. Set `reticulate::use_python` to the interpreter from the previous step.【F:ProjectDevelopmentPortal/template_global.R†L2-L85】
-5. **Provide secrets via `iwefdj`**: Populate the `tmp/uiguhk.Rda` file (or equivalent secure loader) with an `iwefdj` list that stores Hedera operator credentials, Cyphr key paths/passwords, Postgres username/password, Python path, Web3.storage configuration, and service emails referenced across the modules.【F:ProjectDevelopmentPortal/template_global.R†L54-L85】【F:ProjectDevelopmentPortal/functions/dbAuxFunctions/getDbCon.R†L22-L27】【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L343-L418】
-6. **Set environment variables**: Export `API_KEY_FLUREE` (for the Fluree ledger) and any additional secrets consumed by Docker services or helper scripts.【F:ProjectDevelopmentPortal/scripts/setup.R†L6-L13】
-7. **Provision the database**: Run the one-time bootstrap script to create tables, load workflows, schemas, and (optionally) token definitions. Use a dedicated Hedera operator account with sufficient Testnet HBAR when running this step.
+ 
+5. **Configure `global.R`**: Copy `ProjectDevelopmentPortal/template_global.R` to `ProjectDevelopmentPortal/global.R`, replace every `REPLACE_ME` placeholder with your local paths, Postgres host, database, and port, and confirm `hederaNetwork` stays on `testnet`. Set `reticulate::use_python` to the interpreter from the previous step.【F:ProjectDevelopmentPortal/template_global.R†L2-L85】
+   
+7. **Provide secrets via `iwefdj`**: Populate an `.Rda` file (or equivalent secure loader) with an list that stores Hedera operator credentials, Cyphr key paths/passwords, Postgres username/password, Python path, Web3.storage configuration, and service emails referenced across the modules.【F:ProjectDevelopmentPortal/template_global.R†L54-L85】【F:ProjectDevelopmentPortal/functions/dbAuxFunctions/getDbCon.R†L22-L27】【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L343-L418】
+
+9. **Set environment variables**: Export `API_KEY_FLUREE` (for the Fluree ledger) and any additional secrets consumed by Docker services or helper scripts.【F:ProjectDevelopmentPortal/scripts/setup.R†L6-L13】
+    
+11. **Provision the database**: Run the one-time bootstrap script to create tables, load workflows, schemas, and (optionally) token definitions. Use a dedicated Hedera operator account with sufficient Testnet HBAR when running this step.
    ```bash
    Rscript ProjectDevelopmentPortal/scripts/setup.R
    ```
    The script iterates over SQL files in `table-definitions/`, registers workflow metadata, and links operator keys to the ledger.【F:ProjectDevelopmentPortal/scripts/setup.R†L18-L160】【F:ProjectDevelopmentPortal/scripts/setup.R†L200-L346】
-8. **Launch the portal**: Start the Shiny app in Testnet mode.
+11. **Launch the portal**: Start the Shiny app in Testnet mode.
    ```bash
    R -e "shiny::runApp('ProjectDevelopmentPortal')"
    ```
