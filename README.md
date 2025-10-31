@@ -9,6 +9,12 @@ This repository contains a submission for the 2025 Hedera Africa Hackathon
 - **Hashgraph Developer Course Certification:** [Christiaan Pauw's certificate](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
 
 ## Repository Overview
+
+### System architecture
+
+For a high-level view of how the portal, data services, and governance components connect, see the
+[architecture diagram](./ArchitectureDiagram.pdf).
+
 ### Project Development Portal (primary focus)
 The `ProjectDevelopmentPortal/` directory hosts the Independent Impact Project Development Portal. The portal is also hosted at https://app.independentimpact.org, currently running on testnet. Test it out by creating an account (recommended), or for rapid testing, by logging in as one of the pre-created test users:
 
