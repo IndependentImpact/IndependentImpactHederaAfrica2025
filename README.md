@@ -1,10 +1,12 @@
-# Independent Impact Project Development Portal
+# Independent Impact
+
+This repository contains a submission for the 2025 Hedera Africa Hackathon
 
 ## Project Title & Track
-- **Title:** Independent Impact Project Development Portal
+- **Title:** Independent Impact
 - **Hackathon Track:** 2. DLT for Operations
 - **Pitch Deck:** _Replace this placeholder with the public link to your latest deck before submission._
-- **Certification Link:** [Christiaan Pauw](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
+- **Certification Link:** [Christiaan Pauw certificate](https://bafkreiafrgokcpsbjlai5sxkmundbakelz74qgxcu6jj2u27klgrbl3g3u.ipfs.w3s.link/)
 
 ## Repository Overview
 ### Project Development Portal (primary focus)
@@ -29,20 +31,115 @@ The explorer is live at chat.independentimpact.org.
 `Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17】
 
 ## Hedera Integration Summary
-### Hedera Consensus Service (HCS)
-We use HCS topics for immutable project and workflow logging: every new project mints a dedicated topic whose admin and submit keys are stored locally, and every workflow submission posts encrypted IPFS payload references via `TopicMessageSubmitTransaction`. This design guarantees tamper-evident governance records while keeping the heavy documents off-chain.【F:ProjectDevelopmentPortal/modules/tabProjects.R†L309-L360】【F:ProjectDevelopmentPortal/functions/submitDocToHedera.R†L314-L360】 Predictable topic fees mean registries can budget for thousands of submissions without risking operational overruns—critical for African community projects operating on tight margins.【F:Protocol/11-a-TechnicalImplementation.md†L5-L17】
 
-### Hedera Accounts & DID Registry
-Agent onboarding mints Hedera accounts with `AccountCreateTransaction`, registers Hiero-backed DIDs, and stores the resulting identifiers against the user’s ledger profile. DID documents are encrypted, uploaded to IPFS, and linked to Hedera topics, giving reviewers verifiable digital identities without exposing private keys.【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L336-L438】 Finality under three seconds keeps onboarding responsive even in regions with constrained connectivity, while DID anchoring eliminates manual credential vetting costs.【F:Protocol/11-a-TechnicalImplementation.md†L5-L17】
+### Hedera services used
 
-### Hedera Token Service (HTS)
-The bootstrap script outlines a suite of non-fungible licenses and certificates—each created with `TokenCreateTransaction` and tied to specific workflows—for project developer, validator, and verifier roles.【F:ProjectDevelopmentPortal/scripts/setup.R†L200-L346】 Even when issuance is paused, the defined flow makes it trivial to turn on paid certifications, leveraging Hedera’s low minting costs to keep compliance affordable for African partners.【F:Protocol/11-a-TechnicalImplementation.md†L9-L17】
+#### 1. Hedera Consensus Service (HCS)
 
-### Transaction Types
-- `TopicCreateTransaction` for allocating per-project governance topics.【F:ProjectDevelopmentPortal/modules/tabProjects.R†L317-L330】
-- `TopicMessageSubmitTransaction` for notarising workflow events and IPFS references.【F:ProjectDevelopmentPortal/functions/submitDocToHedera.R†L314-L323】
-- `AccountCreateTransaction` for onboarding agents and linking wallets to portal identities.【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L336-L358】
-- `TokenCreateTransaction` for licensing and credential NFTs issued by standards workflows.【F:ProjectDevelopmentPortal/scripts/setup.R†L264-L281】
+The Independent Impact platform uses Hedera Consensus Service for immutable, verifiable event journaling, such as document publication or recording a verifier’s submission of evidence.
+
+Why HCS:
+
+- Fast consensus (2–5 seconds): Ideal for fast-paced workflows, such as ground-truthing where verifiers cannot wait extended periods for confirmation from the system that their submissions have been "accepted" into the ledger.
+
+- Efficient topic-based messaging: Devices on the network subscribe only to relevant “topics,” reducing bandwidth and power consumption — essential for limited-connectivity and energy-constrained environments like rural Africa.
+
+- Compact messages: HCS messages are small, further supporting low-bandwidth contexts.
+
+- Message-based pricing: Costs depend on message count, not data size, which fits our architecture — we only need a consensus service to anchor data hashes in a timeline, while full data resides in Fluree and IPFS.
+
+#### 2. Hedera Token Service (HTS) (implementation in-progress)
+
+HTS underpins two major components of the Independent Impact platform:  
+- agent reputation
+- trading of verified impact claims
+
+(a) Agent Reputation System  
+
+Reputation will be represented through tokens across two reputation domains:  
+
+- Knowledge & Skills: will use both fungible and non-fungible tokens
+
+- Conduct: will use fungible tokens only
+
+Tokenising reputation allows integration with smart contracts, enabling *functional* reputation — i.e., reputation that can unlock access, privileges, and income opportunities (typically through bounties). Hedera’s low and predictable fees make this viable in our use case; other chains’ costs would have been prohibitive.
+
+Please refer to our [Protocol](https://github.com/IndependentImpact/Protocol/blob/main/04-a-AgentReputationSystem.md) for the latest version of the design of the Agent Reputation System.
+
+
+(b) Trading verified impact claims  
+
+Impact claims (e.g., carbon credits) will be tokenised as NFTs to ensure transparency and prevent double counting. In this context HTS provides:
+
+- immutable tracking of token ownership and metadata
+
+- low administrative costs compared to the notoriously high administrative costs of traditional impact registries 
+
+- carbon-negative network operations — ensuring that tokenising impact claims does not undermine the sustainability goals of the platform
+
+#### 3. Hedera Smart Contract Service (HSCS) (planned)
+
+Smart contracts will power bounties — escrow-based tasks that agents can claim by performing verified actions. 
+
+How it works:
+
+- A bounty creator locks funds and defines the task and agent reputation requirements.
+
+- Eligible agents (i.e., those meeting reputation criteria) can fulfill the task to receive payment.
+
+- Bounties can incentivise many different actions, such as data collection, information validation, or indicator creation.
+
+This system ties agent reputation directly to economic utility, creating a merit-based incentive loop.
+
+Please refer to our [Protocol](https://github.com/IndependentImpact/Protocol/blob/main/07-a-Bounties.md) for the latest version of the smart contract-based bounty system design.
+
+### Hedera Transaction Types Used
+
+The platform will at maturity use virtually all the Hedera transaction types for accounts, consensus, smart contracts and tokens. Our proof-of-concept currently uses the following three:
+
+`AccountCreateTransaction()`  
+`TopicCreateTransaction()`  
+`TopicMessageSubmitTransaction()` 
+
+### Economic Justification
+
+Hedera provides the optimal economic foundation for the Independent Impact platform by combining low and predictable transaction costs with high operational efficiency and sustainability. Every component of our system — event journaling, reputation management, and impact claim tokenisation — relies on high-frequency, low-value transactions. In such contexts, even small per-transaction fees can quickly become prohibitive on most distributed ledgers. Hedera’s fee model, based on fixed USD pricing rather than volatile gas markets, ensures cost stability and long-term budget predictability.
+
+Furthermore, Hedera Consensus Service’s message-based (as opposed to data-based) pricing enables us to immutably record events without paying for full data storage — a critical efficiency given that our platform only needs to anchor hashes while storing complete data off-chain in Fluree and IPFS. The Token Service similarly provides a low-cost mechanism for representing and transferring tokens, supporting the tokenisation of reputation and impact claims without imposing heavy administrative overhead. Compared with traditional registries or higher-cost blockchains, these efficiencies directly translate to more funds reaching actual impact activities instead of being consumed by administrative or network fees.
+
+Finally, Hedera’s energy efficiency and carbon-negative operations reduce environmental externalities and align perfectly with Independent Impact’s mission. The network’s low energy footprint ensures that tokenising and verifying impact outcomes remains consistent with the values the platform seeks to promote — transparency, accountability, and sustainability delivered at minimal cost.
+
+### Other Hedera components used
+
+#### 1. Hiero Python SDK
+
+Methods used:
+
+`hiero$Client()`  
+`hiero$AccountCreateTransaction()`  
+`hiero$AccountId$from_string()`  
+`hiero$PrivateKey$generate()`  
+`hiero$PrivateKey$from_string()`  
+`hiero$CryptoGetAccountBalanceQuery()`  
+`hiero$Hbar()`  
+`hiero$TopicCreateTransaction()`  
+`hiero$TopicMessageSubmitTransaction()`  
+`hiero$TopicId$from_string()`  
+
+#### 2. Hiero Python DID SDK
+
+Methods used:
+
+`hieroDid$HederaDid()`  
+`hieroDid$HederaDid$register()`  
+`hieroDid$HederaDid$add_service()`  
+`hieroDid$utils$encoding$multibase_encode()`  
+`hieroDid$HederaDidResolver()`  
+
+#### 3. Mirror node REST API
+
+We have created and open-sourced a Hedera library for interacting with the mirror nodes from within R (https://github.com/Jellyfi3sh/hedera/tree/main). We use this library extensively to query Hedera mirror nodes.
+
 
 ### Economic Justification
 Every recorded action—project creation, reviewer commentary, or certificate issuance—maps to deterministic Hedera micro-fees noted in the protocol documentation.【F:Protocol/11-a-TechnicalImplementation.md†L5-L17】 Combined with ABFT finality and 10k+ TPS capacity, these stable costs let Independent Impact subsidise onboarding for smaller African developers today and scale to national programmes without renegotiating treasury budgets.
