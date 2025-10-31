@@ -1,0 +1,50 @@
+networks:
+  appnet:
+    name: iichatbot_appnet
+    driver: bridge
+    internal: true
+  frontnet:
+    name: iichatbot_frontnet
+    driver: bridge
+
+services:
+  mcp:
+    build: ./mcp
+    image: fluree-mcp:conf
+    environment:
+      TRANSPORT: "sse"
+      BIND_ADDRESS: "0.0.0.0"
+      PORT: "8765"
+      FLUREE_BASE_URL: "${FLUREE_BASE_URL}"
+      DATASET: "${DATASET}"
+      FLUREE_API_KEY: "${FLUREE_API_HANDLE}=${FLUREE_API_TOKEN}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(8765,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+    networks:
+      appnet:
+        aliases: [mcp]     # ensure the DNS name exists on appnet
+      frontnet: {}         # so MCP can reach https://data.flur.ee
+
+  streamlit:
+    build: ./streamlit
+    image: my-streamlit:latest
+    environment:
+      MCP_BASE_URL: "${MCP_BASE_URL}"
+      LLM_API_KEY: "${LLM_API_KEY}"
+    depends_on:
+      - mcp
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - streamlit
+    ports:
+      - "127.0.0.1:8501:8501"
+    networks:
+      appnet: { aliases: [streamlit] }
+      frontnet: {}
+    extra_hosts:
+    - "mcp:172.30.0.2"   # <-- MCP’s IP on iichatbot_appnet

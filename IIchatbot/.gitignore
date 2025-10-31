@@ -1,0 +1,71 @@
+# ---------------------------
+# Environment & secrets
+# ---------------------------
+.env
+.env.*
+!.env.example
+secrets/
+!secrets/.gitkeep
+
+# ---------------------------
+# Python (Streamlit app)
+# ---------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+pip-wheel-metadata/
+.pytype/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Streamlit local state (keep config files in repo if you want)
+.streamlit/
+
+# ---------------------------
+# Node (MCP server tooling)
+# ---------------------------
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# ---------------------------
+# Docker / Compose
+# ---------------------------
+docker-compose.override.yml
+*.log
+
+# ---------------------------
+# Nginx / TLS artifacts
+# ---------------------------
+nginx/dhparam.pem
+nginx/ssl/
+letsencrypt/
+certbot/
+certs/
+*.crt
+*.key
+*.pem
+
+# Keep the welcome page tracked
+!nginx/www/index.html
+
+# ---------------------------
+# Build artifacts
+# ---------------------------
+dist/
+build/
+
+# ---------------------------
+# OS/editor junk
+# ---------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
