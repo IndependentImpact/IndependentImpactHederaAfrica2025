@@ -13,7 +13,11 @@ This repository contains a submission for the 2025 Hedera Africa Hackathon
 ### System architecture
 
 For a high-level view of how the portal, data services, and governance components connect, see the
-[architecture diagram](./ArchitectureDiagram.pdf).
+[architecture diagram](./ArchitectureDiagram.pdf) or the inline preview below.
+
+<p align="center">
+  <img src="./ArchitectureDiagram.svg" alt="Architecture diagram showing the relationships between the R Shiny frontend, R services, Hedera SDK, and workflow scripts" width="100%" />
+</p>
 
 ### Project Development Portal (primary focus)
 The `ProjectDevelopmentPortal/` directory hosts the Independent Impact Project Development Portal. The portal is also hosted at https://app.independentimpact.org, currently running on testnet. Test it out by creating an account (recommended), or for rapid testing, by logging in as one of the pre-created test users:

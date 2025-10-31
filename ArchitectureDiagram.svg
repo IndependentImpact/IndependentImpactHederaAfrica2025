@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" font-family="'Segoe UI', sans-serif">
+  <defs>
+    <style>
+      .box { fill: #e8f2fb; stroke: #1f77b4; stroke-width: 3; rx: 12; ry: 12; }
+      .label { font-size: 26px; fill: #1a1a1a; }
+      .small { font-size: 22px; fill: #1a1a1a; }
+      .note { font-size: 20px; fill: #333; }
+      .arrow { fill: none; stroke: #4a4a4a; stroke-width: 4; marker-end: url(#arrowhead); }
+      .arrow-both { fill: none; stroke: #4a4a4a; stroke-width: 4; marker-end: url(#arrowhead); marker-start: url(#arrowhead-start); }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4a4a4a" />
+    </marker>
+    <marker id="arrowhead-start" markerWidth="12" markerHeight="12" refX="2" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M9,0 L9,6 L0,3 z" fill="#4a4a4a" />
+    </marker>
+  </defs>
+
+  <rect class="box" x="70" y="120" width="240" height="180" />
+  <text class="label" x="190" y="190" text-anchor="middle">R Shiny Frontend</text>
+  <text class="small" x="190" y="230" text-anchor="middle">(modules/, app.R)</text>
+
+  <rect class="box" x="360" y="120" width="240" height="180" />
+  <text class="label" x="480" y="190" text-anchor="middle">R Services &amp; DB</text>
+  <text class="small" x="480" y="230" text-anchor="middle">(Postgres, Fluree)</text>
+
+  <rect class="box" x="650" y="120" width="240" height="180" />
+  <text class="label" x="770" y="180" text-anchor="middle">Hedera SDK</text>
+  <text class="small" x="770" y="220" text-anchor="middle">(Hiero via Python)</text>
+  <text class="small" x="770" y="255" text-anchor="middle">+ Hedera Testnet &amp; Mirror</text>
+
+  <rect class="box" x="360" y="350" width="240" height="140" />
+  <text class="label" x="480" y="420" text-anchor="middle">Workflow Scripts</text>
+  <text class="small" x="480" y="455" text-anchor="middle">+ Integrations</text>
+
+  <line class="arrow-both" x1="310" y1="210" x2="360" y2="210" />
+  <line class="arrow-both" x1="600" y1="210" x2="650" y2="210" />
+  <line class="arrow-both" x1="480" y1="300" x2="480" y2="350" />
+
+  <text class="note" x="480" y="520" text-anchor="middle">Data flows from the Shiny UI into R modules that persist state in Postgres/Fluree, sign Hedera transactions through</text>
+  <text class="note" x="480" y="545" text-anchor="middle">the Hiero SDK, and pin documents to IPFS before recording immutable references on Hedera.</text>
+</svg>
