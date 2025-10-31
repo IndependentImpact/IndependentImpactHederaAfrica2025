@@ -1,0 +1,195 @@
+---
+title: "AMS-II.Q Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-II.Q Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-II.Q calculations using
+`cdmAmsIIq`. The methodology covers commercial building projects that combine
+energy efficiency upgrades with onsite energy supply. The workflow quantifies
+baseline emissions, splits project emissions between grid consumption and onsite
+energy, incorporates leakage, and reports net emission reductions and energy
+intensity diagnostics.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIIq)
+
+baseline_services <- tibble::tibble(
+  service = c("cooling", "lighting"),
+  baseline_units = c(4, 200)
+)
+project_services <- tibble::tibble(
+  service = c("cooling", "lighting"),
+  project_units = c(2, 200)
+)
+monitoring_snapshot <- tibble::tibble(
+  baseline_energy_use_mwh = c(820, 610),
+  baseline_emission_factor_tco2_per_mwh = c(0.62, 0.61),
+  project_energy_use_mwh = c(540, 430),
+  project_emission_factor_tco2_per_mwh = c(0.58, 0.57)
+)
+baseline_intensity <- tibble::tibble(
+  building_id = c("B1", "B2"),
+  baseline_energy_use_mwh = c(820, 610),
+  baseline_service_output_mwh = c(760, 540)
+)
+project_intensity <- tibble::tibble(
+  building_id = c("B1", "B2"),
+  project_energy_use_mwh = c(540, 430),
+  project_service_output_mwh = c(760, 540)
+)
+
+check_applicability_service_scope_iiq(baseline_services, project_services)
+check_applicability_monitoring_iiq(monitoring_snapshot)
+check_applicability_efficiency_gain_iiq(
+  baseline_intensity,
+  project_intensity,
+  group_cols = "building_id",
+  minimum_improvement = 0.05
+)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+inputs <- simulate_ams_iiq_inputs(n_buildings = 3, seed = 123)
+quiet_kable(inputs$baseline_data, format = "html", digits = 2)
+```
+
+The simulation provides baseline, project, and leakage datasets for each
+building, including energy use, emission factors, service output, onsite energy,
+and leakage placeholders.
+
+# Equation Walkthrough
+
+```{r equations}
+baseline_emissions <- calculate_baseline_building_emissions_iiq(
+  inputs$baseline_data,
+  group_cols = "building_id"
+)
+project_grid <- calculate_project_building_emissions_iiq(
+  inputs$project_data,
+  group_cols = "building_id"
+)
+project_onsite <- calculate_project_onsite_energy_emissions_iiq(
+  inputs$project_data,
+  group_cols = "building_id"
+)
+project_totals <- project_grid |>
+  dplyr::left_join(project_onsite, by = "building_id") |>
+  dplyr::mutate(
+    project_emissions_tco2e = dplyr::coalesce(project_emissions_tco2e, 0) +
+      dplyr::coalesce(project_onsite_emissions_tco2e, 0)
+  )
+leakage_totals <- inputs$leakage_data
+
+emission_reductions <- calculate_emission_reductions_iiq(
+  baseline_emissions = baseline_emissions,
+  project_emissions = project_totals |>
+    dplyr::select(building_id, project_emissions_tco2e),
+  leakage_emissions = leakage_totals,
+  group_cols = "building_id"
+)
+
+walkthrough_results <- baseline_emissions |>
+  dplyr::left_join(project_totals, by = "building_id") |>
+  dplyr::left_join(leakage_totals, by = "building_id") |>
+  dplyr::left_join(emission_reductions, by = "building_id")
+
+quiet_kable(walkthrough_results, format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+monitoring_summary <- inputs$baseline_data |>
+  dplyr::left_join(inputs$project_data, by = "building_id", suffix = c("_baseline", "_project")) |>
+  dplyr::left_join(inputs$leakage_data, by = "building_id")
+
+quiet_kable(monitoring_summary, format = "html", digits = 2)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_iiq(
+  baseline_data = inputs$baseline_data,
+  project_data = inputs$project_data,
+  leakage_data = inputs$leakage_data,
+  group_cols = "building_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_building_emissions_iiq()`",
+    "`calculate_project_building_emissions_iiq()`",
+    "`calculate_project_onsite_energy_emissions_iiq()`",
+    "`calculate_emission_reductions_iiq()`",
+    "`estimate_emission_reductions_ams_iiq()`",
+    "`simulate_ams_iiq_inputs()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_building_emissions_iiq(baseline_data, energy_consumption_col = \"baseline_energy_use_mwh\", emission_factor_col = \"baseline_emission_factor_tco2_per_mwh\", service_output_col = \"baseline_service_output_mwh\", group_cols = NULL, output_col = \"baseline_emissions_tco2e\", intensity_col = \"baseline_energy_intensity\")`",
+    "`calculate_project_building_emissions_iiq(project_data, energy_consumption_col = \"project_energy_use_mwh\", emission_factor_col = \"project_emission_factor_tco2_per_mwh\", service_output_col = \"project_service_output_mwh\", group_cols = NULL, output_col = \"project_emissions_tco2e\", intensity_col = \"project_energy_intensity\")`",
+    "`calculate_project_onsite_energy_emissions_iiq(project_data, onsite_energy_col = \"project_onsite_energy_gj\", emission_factor_col = \"project_onsite_emission_factor_tco2_per_gj\", group_cols = NULL, output_col = \"project_onsite_emissions_tco2e\")`",
+    "`calculate_emission_reductions_iiq(baseline_emissions, project_emissions, leakage_emissions = NULL, group_cols = NULL, output_col = \"emission_reductions_tco2e\")`",
+    "`estimate_emission_reductions_ams_iiq(baseline_data, project_data, leakage_data = NULL, group_cols = NULL, baseline_energy_consumption_col = \"baseline_energy_use_mwh\", baseline_emission_factor_col = \"baseline_emission_factor_tco2_per_mwh\", baseline_service_output_col = \"baseline_service_output_mwh\", project_energy_consumption_col = \"project_energy_use_mwh\", project_emission_factor_col = \"project_emission_factor_tco2_per_mwh\", project_service_output_col = \"project_service_output_mwh\", project_onsite_energy_col = \"project_onsite_energy_gj\", project_onsite_emission_factor_col = \"project_onsite_emission_factor_tco2_per_gj\", leakage_col = \"leakage_emissions_tco2e\")`",
+    "`simulate_ams_iiq_inputs(n_buildings = 4, seed = NULL)`"
+  ),
+  Purpose = c(
+    "Aggregates baseline commercial building energy use into emissions and intensity diagnostics.<br>\\(BE_y = \\sum_i EC^{BL}_{i,y} \\times EF^{BL}_{i,y}\\)",
+    "Summarises post-retrofit grid energy emissions and energy intensity.<br>\\(PE^{grid}_y = \\sum_i EC^{PR}_{i,y} \\times EF^{PR}_{i,y}\\)",
+    "Converts onsite energy supply into project emissions.<br>\\(PE^{onsite}_y = \\sum_i ONS_{i,y} \\times EF^{onsite}_{i,y}\\)",
+    "Combines baseline, project, and leakage emissions to obtain net reductions.<br>\\(ER_y = BE_y - (PE^{grid}_y + PE^{onsite}_y + LE_y)\\)",
+    "Meta-function chaining the AMS-II.Q equation helpers into a tidy workflow.<br>\\(ER_y = BE_y - (PE^{grid}_y + PE^{onsite}_y + LE_y)\\)",
+    "Generates representative baseline, project, and leakage datasets for demonstrations and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input baseline, project, and leakage monitoring data",
+    "calculate_baseline_building_emissions_iiq",
+    "calculate_project_building_emissions_iiq",
+    "calculate_project_onsite_energy_emissions_iiq",
+    "calculate_emission_reductions_iiq",
+    "estimate_emission_reductions_ams_iiq"
+  ),
+  Purpose = c(
+    "Collect building-level energy, emission factor, and onsite supply metrics.",
+    "Translate baseline energy use into emissions and intensity diagnostics.",
+    "Summarise project grid energy emissions and efficiency performance.",
+    "Account for onsite energy supply emissions within the project boundary.",
+    "Subtract project and leakage emissions from baseline totals to obtain reductions.",
+    "Return a tidy tibble with emission reductions and supporting diagnostics."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

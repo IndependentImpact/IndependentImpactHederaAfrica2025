@@ -1,0 +1,66 @@
+---
+title: "cdmAmsIIc"
+output: github_document
+---
+
+`cdmAmsIIc` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-II.C Demand-side energy efficiency activities for specific technologies**.
+
+The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for end-use efficiency interventions.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIIc")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIIc)
+
+applicable <- all(
+  check_applicability_energy_savings(annual_energy_savings_mwh = 42000),
+  check_applicability_technology(c("efficient_lighting", "variable_speed_drives")),
+  check_applicability_monitoring("continuous_metering")
+)
+
+if (applicable) {
+  baseline <- tibble::tibble(site_id = 1, baseline_energy_mwh = 46)
+  project <- tibble::tibble(site_id = 1, project_energy_mwh = 24)
+  emission_reductions <- estimate_emission_reductions_ams_iic(
+    baseline,
+    project,
+    emission_factor = 0.68,
+    group_cols = "site_id"
+  )
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIIc-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-II.C requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_energy_savings()` – verifies annual energy savings remain within the 60 GWh small-scale threshold for Type II activities.
+- `check_applicability_technology()` – ensures only technologies listed in AMS-II.C are deployed (e.g. efficient lighting, motors, HVAC optimisation, refrigeration).
+- `check_applicability_monitoring()` – confirms monitoring approaches align with the methodology (continuous metering, periodic sampling, or calibrated nameplate data).
+
+## Key Equations
+
+`cdmAmsIIc` translates the numbered equations from AMS-II.C into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_energy_consumption()` | Aggregates baseline energy consumption prior to the efficiency measure. |
+| (2) | `calculate_project_energy_consumption()` | Aggregates monitored project energy use of the efficient technology. |
+| (3) | `calculate_energy_savings()` | Derives energy savings as the difference between baseline and project energy. |
+| (4) | `calculate_emission_reductions()` | Converts energy savings into emission reductions using the applicable factor. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iic()` chains these helpers for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while preserving site-level identifiers and emission factors.
+- `simulate_ams_iic_dataset()` generates example datasets with monitoring metadata, technology assignments, and emission outcomes to support tests, demos, and onboarding.

@@ -1,0 +1,69 @@
+---
+title: "cdmAmsIf"
+output: github_document
+---
+
+`cdmAmsIf` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-I.F Renewable electricity generation for captive use and mini-grids**.
+
+The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for captive renewable systems.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIf")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIf)
+
+applicable <- all(
+  check_applicability_captive_capacity(capacity_kw = 12000),
+  check_applicability_renewable_penetration(renewable_fraction = 0.8),
+  check_applicability_captive_use_share(captive_use_share = 0.7)
+)
+
+if (applicable) {
+  supply <- tibble::tibble(grid_id = 1, electricity_mwh = 950)
+  baseline <- calculate_baseline_electricity_supply(supply)
+  emissions <- calculate_baseline_emissions(baseline, baseline_emission_factor = 0.7)
+  project <- calculate_project_emissions(baseline, project_emission_factor = 0.05)
+  emission_reductions <- calculate_emission_reductions(emissions, project)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIf-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-I.F requirements before emission reductions can be claimed. Use the
+package helpers to document each criterion:
+
+- `check_applicability_captive_capacity()` – verifies the system remains under the 15 MW small-scale
+  threshold for Type I activities.
+- `check_applicability_renewable_penetration()` – confirms that renewable resources supply the majority
+  of electricity delivered to the captive system or mini-grid.
+- `check_applicability_captive_use_share()` – ensures the project primarily serves captive demand.
+
+## Key Equations
+
+`cdmAmsIf` translates the numbered equations from AMS-I.F into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_electricity_supply()` | Sums electricity delivered to captive and mini-grid users during the baseline period. |
+| (2) | `calculate_baseline_emissions()` | Applies the baseline emission factor to estimate displaced fossil electricity. |
+| (3) | `calculate_project_emissions()` | Estimates project emissions from auxiliary fossil generation. |
+| (4) | `calculate_emission_reductions()` | Derives emission reductions by subtracting project emissions from baseline emissions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_if()` chains these helpers together for
+tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while
+  preserving grid-level identifiers and emission factors.
+- `simulate_ams_if_dataset()` generates example datasets with monitoring metadata and captive-use
+  shares to support tests, demos, and onboarding.

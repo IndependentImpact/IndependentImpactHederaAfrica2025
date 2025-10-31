@@ -1,0 +1,27 @@
+Package: cdmAmsIIq
+Title: Implementation of CDM Small-Scale Methodology AMS-II.Q
+Version: 0.0.1
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Author: Christiaan Pauw [aut, cre]
+Maintainer: OpenAI Assistant <assistant@independentimpact.org>
+Description: Provides tidyverse-aligned tooling to implement the Clean Development Mechanism
+    small-scale methodology AMS-II.Q "Energy efficiency and/or energy supply projects in commercial buildings"
+    for commercial buildings. Functions translate numbered equations,
+    applicability conditions, and calculation workflows into reproducible R
+    code and include simulation utilities for demonstration and testing
+    purposes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    rlang,
+    stats,
+    tibble
+Suggests: testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

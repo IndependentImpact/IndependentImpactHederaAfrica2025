@@ -1,0 +1,4 @@
+period,gross_generation_mwh,auxiliary_consumption_mwh,fossil_fuel_tj,electricity_import_mwh
+Period 01,14850,520,0.04,18
+Period 02,15230,610,0.05,22
+Period 03,14980,590,0.03,15

@@ -1,0 +1,34 @@
+---
+title: "Applying ACM0009 with cdmAcm0009"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Applying ACM0009 with cdmAcm0009}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#"
+)
+```
+
+# Overview
+
+The `cdmAcm0009` package implements the essential monitoring and greenhouse gas accounting logic for the CDM large-scale methodology ACM0009. The methodology covers projects that switch existing power or heat plants from coal and/or petroleum fuels to natural gas.
+
+# Workflow
+
+1. Validate that the project meets the applicability conditions, including a qualifying baseline fuel mix and natural gas as the project fuel.
+2. Calculate baseline and project emissions using fuel consumption, net calorific values, and emission factors.
+3. Quantify leakage, including methane slip from gas handling and other project-specific sources.
+4. Aggregate period-level results to report total emission reductions.
+
+```{r}
+library(cdmAcm0009)
+
+data <- simulate_acm0009_dataset(periods = 3, seed = 12)
+results <- estimate_emission_reductions_acm0009(data)
+results$total_emission_reductions
+```

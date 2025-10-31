@@ -1,0 +1,143 @@
+---
+title: "ACM0002 Methodology Walkthrough"
+author: "OpenAI Assistant"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0002 Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(cdmAcm0002)
+```
+
+## Introduction
+
+This vignette demonstrates how `cdmAcm0002` translates the CDM large-scale
+methodology ACM0002 into reproducible R code. The package focuses on
+grid-connected renewable electricity generation projects and provides tools to
+run applicability checks, calculate baseline and project emissions, and summarise
+monitoring periods.
+
+## Applicability Checks
+
+```{r applicability}
+check_applicability_grid_connection("grid-connected", export_share = 0.92)
+check_applicability_renewable_technology("wind")
+```
+
+Both conditions must be satisfied to proceed with ACM0002 calculations.
+
+## Simulated Dataset
+
+```{r simulation}
+monitoring_data <- simulate_acm0002_dataset(6, seed = 2025)
+knitr::kable(head(monitoring_data))
+```
+
+The simulated data includes gross generation, auxiliary consumption, fossil
+back-up fuel use, and grid emission factors for each monitoring period.
+
+## Equation Walkthrough
+
+```{r equations}
+net_generation <- calculate_net_electricity_generation(
+  monitoring_data$gross_generation_mwh,
+  monitoring_data$auxiliary_consumption_mwh
+)
+baseline_emissions <- calculate_baseline_emissions(
+  net_generation,
+  monitoring_data$combined_margin_ef
+)
+project_emissions <- calculate_project_emissions(
+  monitoring_data$fossil_fuel_tj,
+  monitoring_data$fossil_emission_factor,
+  monitoring_data$electricity_import_mwh,
+  monitoring_data$import_emission_factor
+)
+emission_reductions <- calculate_emission_reductions(
+  baseline_emissions,
+  project_emissions,
+  monitoring_data$leakage_emissions
+)
+knitr::kable(
+  tibble::tibble(
+    period = monitoring_data$period,
+    net_generation,
+    baseline_emissions,
+    project_emissions,
+    emission_reductions
+  )
+)
+```
+
+## Monitoring Period Aggregation
+
+```{r aggregation}
+period_summary <- aggregate_monitoring_periods(monitoring_data)
+knitr::kable(period_summary)
+```
+
+## Meta-Function
+
+```{r meta}
+totals <- estimate_emission_reductions_acm0002(monitoring_data)
+knitr::kable(totals)
+```
+
+## Function Reference
+
+```{r reference}
+reference_table <- tibble::tibble(
+  Function = c(
+    "check_applicability_grid_connection",
+    "check_applicability_renewable_technology",
+    "calculate_net_electricity_generation",
+    "calculate_baseline_emissions",
+    "calculate_project_emissions",
+    "calculate_emission_reductions",
+    "aggregate_monitoring_periods",
+    "estimate_emission_reductions_acm0002",
+    "simulate_acm0002_dataset"
+  ),
+  Signature = c(
+    "(connection_status, export_share = 1, minimum_export = 0.9)",
+    "(technology, allowed = c('wind', 'solar', 'hydro', 'geothermal', 'biomass'))",
+    "(gross_generation_mwh, auxiliary_consumption_mwh)",
+    "(net_electricity_mwh, combined_margin_ef)",
+    "(fossil_fuel_tj, fossil_emission_factor, electricity_import_mwh = 0, import_emission_factor = 0)",
+    "(baseline_emissions, project_emissions, leakage_emissions = 0)",
+    "(monitoring_data)",
+    "(monitoring_data)",
+    "(n_periods = 12, seed = NULL)"
+  ),
+  Purpose = c(
+    "Verify that the plant exports renewable electricity to the grid.",
+    "Ensure the generation technology is eligible under ACM0002.",
+    "Compute net electricity delivered to the grid.",
+    "Apply the combined margin emission factor to net electricity.",
+    "Estimate project emissions from fossil back-up systems and imports.",
+    "Derive emission reductions from baseline, project, and leakage values.",
+    "Summarise monitoring periods with emissions metrics.",
+    "Return project-level totals for reporting.",
+    "Generate synthetic monitoring datasets for testing and demos."
+  )
+)
+knitr::kable(reference_table)
+```
+
+## Workflow Overview
+
+| Step | Description | Functions |
+|------|-------------|-----------|
+| 1 | Run ACM0002 applicability checks | `check_applicability_grid_connection()`, `check_applicability_renewable_technology()` |
+| 2 | Simulate or load monitoring data | `simulate_acm0002_dataset()` |
+| 3 | Calculate net generation and emissions | `calculate_net_electricity_generation()`, `calculate_baseline_emissions()`, `calculate_project_emissions()` |
+| 4 | Derive emission reductions | `calculate_emission_reductions()` |
+| 5 | Aggregate monitoring periods | `aggregate_monitoring_periods()` |
+| 6 | Produce project totals | `estimate_emission_reductions_acm0002()` |

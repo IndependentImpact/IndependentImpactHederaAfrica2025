@@ -1,0 +1,58 @@
+# Shared pkgdown configuration for CDM methodology packages.
+# This file is copied and customised per package by the automation scripts.
+# Template variables use moustache syntax (e.g. {{pkg}}) for compatibility with
+# `whisker` or `glue::glue_data()`.
+
+url: "https://{{github_org}}.github.io/GHG_methodologies/sites/{{pkg}}/"
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  params:
+    docsearch:
+      api_key: "{{docsearch_api_key}}"
+      index_name: "{{docsearch_index}}"
+
+navbar:
+  structure:
+    left:
+      - reference
+      - articles
+      - news
+    right:
+      - text: "Source"
+        href: "https://github.com/{{github_org}}/GHG_methodologies/tree/main/{{pkg_path}}"
+  components:
+    news:
+      text: "News"
+      href: articles/news.html
+    reference:
+      text: "Reference"
+      href: reference/index.html
+    articles:
+      text: "Methodology"
+      href: articles/index.html
+
+home:
+  title: "{{pkg_title}}"
+  description: "{{pkg_description}}"
+
+authors:
+  - name: "UNFCCC"
+    url: "https://unfccc.int/"
+
+reference:
+  - title: "Core functions"
+    contents:
+      - matches("^")
+
+footer:
+  structure:
+    left: pkgdown
+    right: built_with_pkgdown
+  components:
+    pkgdown:
+      text: "Built with pkgdown"
+      href: https://pkgdown.r-lib.org/
+    built_with_pkgdown:
+      text: "{{build_timestamp}}"

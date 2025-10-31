@@ -1,0 +1,16 @@
+utils::globalVariables(c(
+  "system_type_applicable",
+  "measurement_frequency_applicable",
+  "leakage_controls_applicable",
+  ".baseline_component",
+  ".project_generated",
+  ".captured",
+  ".destroyed",
+  ".project_component",
+  ".recovered_component",
+  "baseline_emissions_tco2e",
+  "project_emissions_tco2e",
+  "recovered_methane_tco2e",
+  "leakage_emissions_tco2e",
+  "emission_reductions_tco2e"
+))

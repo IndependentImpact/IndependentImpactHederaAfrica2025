@@ -1,0 +1,135 @@
+---
+title: "AMS-III.D Methane Recovery Workflow"
+author: "cdmAmsIIId Package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-III.D Methane Recovery Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(cdmAmsIIId)
+library(dplyr)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+## Introduction
+
+AMS-III.D covers methane recovery from animal manure management systems. This vignette demonstrates how `cdmAmsIIId` operationalises the methodology with tidyverse data structures. We simulate digesters, verify applicability, walk through equation-level helpers, and complete the monitoring workflow.
+
+## Applicability Checks
+
+We begin by simulating monitoring data and running the three applicability helpers.
+
+```{r applicability}
+monitoring <- simulate_ams_iiid_dataset(n_farms = 2, n_periods = 4, seed = 2025)
+
+tibble::tibble(
+  system = check_applicability_system_type_iiid(monitoring, group_cols = "farm_id")$system_type_applicable,
+  frequency = check_applicability_measurement_frequency_iiid(monitoring, group_cols = "farm_id")$measurement_frequency_applicable,
+  controls = check_applicability_leakage_control_iiid(monitoring, group_cols = "farm_id")$leakage_controls_applicable
+) |>
+  tidyr::pivot_longer(everything(), names_to = "criterion", values_to = "applicable") |>
+  quiet_kable(caption = "Applicability outcomes for each AMS-III.D criterion")
+```
+
+## Simulated Dataset
+
+The simulated dataset provides methane generation parameters and monitoring metadata for each period.
+
+```{r simulated-data}
+head(monitoring) |>
+  quiet_kable(caption = "Excerpt of simulated AMS-III.D monitoring data")
+```
+
+## Equation Walkthrough
+
+Equation helpers operate on tidy tables and can be combined sequentially. We aggregate to the farm level for clarity.
+
+```{r equation-walkthrough}
+aggregated <- aggregate_monitoring_periods_iiid(monitoring, group_cols = "farm_id")
+
+baseline <- calculate_baseline_methane_emissions_iiid(aggregated, group_cols = "farm_id")
+project <- calculate_project_methane_emissions_iiid(aggregated, group_cols = "farm_id")
+recovered <- calculate_recovered_methane_iiid(aggregated, group_cols = "farm_id")
+leakage <- calculate_leakage_emissions_iiid(aggregated, group_cols = "farm_id")
+
+list(
+  Baseline = baseline,
+  Project = project,
+  Recovered = recovered,
+  Leakage = leakage
+) |>
+  purrr::imap_dfr(~ dplyr::mutate(.x, component = .y), .id = NULL) |>
+  dplyr::relocate(component) |>
+  quiet_kable(caption = "Equation-level outputs across components")
+```
+
+## Monitoring Period Aggregation
+
+When working with period-level data, use `aggregate_monitoring_periods_iiid()` to roll up flows while averaging coefficients.
+
+```{r aggregation}
+aggregate_monitoring_periods_iiid(monitoring, group_cols = "farm_id") |>
+  quiet_kable(caption = "Aggregated monitoring data by farm")
+```
+
+## Meta-Function
+
+The meta-function composes equation helpers to produce emission reductions in a single call.
+
+```{r meta}
+reductions <- estimate_emission_reductions_ams_iiid(
+  baseline_data = monitoring,
+  project_data = monitoring,
+  recovery_data = monitoring,
+  leakage_data = monitoring,
+  group_cols = "farm_id"
+)
+
+reductions |>
+  quiet_kable(caption = "Net emission reductions from AMS-III.D workflow")
+```
+
+## Function Reference
+
+```{r function-reference}
+reference <- tibble::tribble(
+  ~Function, ~Signature, ~Purpose,
+  "check_applicability_system_type_iiid", "(data, system_type_col, allowed_types, group_cols)", "Validate manure system eligibility.",
+  "check_applicability_measurement_frequency_iiid", "(data, frequency_col, minimum_frequency, group_cols)", "Confirm monitoring frequency requirements.",
+  "check_applicability_leakage_control_iiid", "(data, control_indicator_col, group_cols)", "Ensure leakage controls are documented.",
+  "calculate_baseline_methane_emissions_iiid", "(data, volatile_solids_col, methane_potential_col, methane_conversion_factor_col)", "Baseline methane emissions.<br>\\(BE_y = \\sum_i VS_{i,y} \\times B0_{i,y} \\times MCF^{BL}_{i,y} \\times d_{i,y} \\times \\rho_{CH4} \\times GWP_{CH4}\\)",
+  "calculate_project_methane_emissions_iiid", "(data, project_methane_conversion_factor_col, capture_efficiency_col)", "Project methane emissions.<br>\\(PE_y = \\sum_i \\big(VS_{i,y} \\times B0_{i,y} \\times MCF^{PR}_{i,y} - DEST_{i,y}\\big) \\times \\rho_{CH4} \\times GWP_{CH4}\\)",
+  "calculate_recovered_methane_iiid", "(data, methane_recovered_col, destruction_efficiency_col)", "Destroyed methane from recovery.<br>\\(DEST_y = \\sum_i MREC_{i,y} \\times DE_{i,y} \\times \\rho_{CH4} \\times GWP_{CH4}\\)",
+  "calculate_leakage_emissions_iiid", "(data, leakage_col)", "Leakage totals.<br>\\(LE_y = \\sum_i LE_{i,y}\\)",
+  "calculate_emission_reductions_iiid", "(baseline, project, recovered, leakage, group_cols)", "Net emission reductions.<br>\\(ER_y = (BE_y - PE_y) - LE_y\\)",
+  "aggregate_monitoring_periods_iiid", "(data, group_cols, sum_cols, mean_cols)", "Roll up monitoring periods.<br>\\(ER_{p,y} = (BE_{p,y} - PE_{p,y}) - LE_{p,y}\\)",
+  "estimate_emission_reductions_ams_iiid", "(baseline_data, project_data, recovery_data, leakage_data, group_cols)", "Meta-estimator for AMS-III.D.<br>\\(ER_y = (BE_y - PE_y) - LE_y\\)"
+)
+
+quiet_kable(reference, escape = FALSE)
+```
+
+## Workflow Overview
+
+```{r workflow-overview}
+overview <- tibble::tribble(
+  ~Step, ~Description, ~Function,
+  "1", "Generate or collect monitoring data by period.", "simulate_ams_iiid_dataset()",
+  "2", "Confirm system eligibility, monitoring frequency, and leakage controls.", "check_applicability_*_iiid()",
+  "3", "Aggregate monitoring periods to the reporting unit.", "aggregate_monitoring_periods_iiid()",
+  "4", "Apply equation helpers to compute baseline, project, recovered, and leakage emissions.", "calculate_*_iiid()",
+  "5", "Compose results into emission reductions.", "estimate_emission_reductions_ams_iiid()"
+)
+
+quiet_kable(overview, caption = "High-level AMS-III.D workflow")
+```

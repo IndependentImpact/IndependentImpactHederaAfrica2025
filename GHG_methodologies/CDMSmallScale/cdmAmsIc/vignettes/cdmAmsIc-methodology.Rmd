@@ -1,0 +1,126 @@
+---
+title: "AMS-I.C Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.C Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.C calculations using `cdmAmsIc`. The
+methodology covers renewable thermal energy production (e.g. biomass boilers, solar thermal
+systems, geothermal heat) that displaces fossil-fuel-based heat generation. The core steps
+involve calculating baseline thermal output, estimating emissions using fossil heat factors,
+and incorporating any residual project emissions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIc)
+check_applicability_thermal_capacity(capacity_mwth = 12)
+check_applicability_renewable_supply(renewable_fraction = 0.85)
+check_applicability_fossil_displacement(fossil_heat_share = 0.75)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_ic_dataset(n_facilities = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`, `month`,
+`day`, and `monitoring_label`) so that calculations can be aggregated over reporting
+periods while preserving facility-level identifiers.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_output <- calculate_baseline_thermal_output(example_data, group_cols = "facility_id")
+baseline_emissions <- calculate_baseline_emissions(
+  baseline_output,
+  baseline_emission_factor = example_data$baseline_emission_factor[1]
+)
+project_emissions <- calculate_project_emissions(
+  baseline_output,
+  project_emission_factor = example_data$project_emission_factor[1]
+)
+emission_reductions <- calculate_emission_reductions(baseline_emissions, project_emissions)
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  thermal_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "facility_id",
+  energy_col = "thermal_energy_mwh",
+  baseline_factor_col = "baseline_emission_factor"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_ic(
+  thermal_data = example_data,
+  baseline_emission_factor = example_data$baseline_emission_factor[1],
+  project_emission_factor = example_data$project_emission_factor[1],
+  group_cols = "facility_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_thermal_output()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_ic()`",
+    "`simulate_ams_ic_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_thermal_output(thermal_data, energy_col = \"thermal_energy_mwh\", group_cols = NULL)`",
+    "`calculate_baseline_emissions(baseline_output, baseline_emission_factor, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions(baseline_output, project_emission_factor = 0, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(thermal_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"facility_id\")`",
+    "`estimate_emission_reductions_ams_ic(thermal_data, baseline_emission_factor, project_emission_factor = 0, group_cols = NULL)`",
+    "`simulate_ams_ic_dataset(n_facilities = 10, n_periods = 12, start_year = 2023, start_month = 1, mean_thermal_mwh = 12000, sd_thermal_mwh = 1800, baseline_emission_factor = 0.27, project_emission_factor = 0.01)`"
+  ),
+  Purpose = c(
+    "Summed baseline thermal output for each group or monitoring period.<br>\\(Q^{BL}_y = \\sum_i Q_{i,y}\\)",
+    "Baseline emissions using the displaced fossil heat factor.<br>\\(BE_y = Q^{BL}_y \\times EF^{BL}\\)",
+    "Project emissions representing auxiliary fossil energy use.<br>\\(PE_y = Q^{BL}_y \\times EF^{PR}\\)",
+    "Emission reductions for each monitoring period.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Aggregates monitoring data to reporting periods.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Meta-calculation composing the core equations.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Simulation with monitoring metadata for testing and demos."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```

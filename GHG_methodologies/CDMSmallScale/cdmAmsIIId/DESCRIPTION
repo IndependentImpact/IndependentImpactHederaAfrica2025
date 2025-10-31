@@ -1,0 +1,29 @@
+Package: cdmAmsIIId
+Title: Implementation of CDM Small-Scale Methodology AMS-III.D
+Version: 0.0.1
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Description: Provides tidyverse-aligned tooling to implement the Clean Development Mechanism
+    small-scale methodology AMS-III.D "Methane recovery in animal manure management systems".
+    Functions translate numbered equations, applicability conditions, and calculation workflows
+    into reproducible R code and include simulation utilities for demonstration and testing purposes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    rlang,
+    stats,
+    tibble
+Suggests: testthat (>= 3.0.0),
+    roxygen2,
+    devtools,
+    knitr,
+    rmarkdown,
+    DeclareDesign,
+    purrr,
+    tidyr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

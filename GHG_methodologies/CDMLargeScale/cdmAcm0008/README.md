@@ -1,0 +1,27 @@
+# cdmAcm0008
+
+`cdmAcm0008` implements the Clean Development Mechanism (CDM) large-scale methodology **ACM0008 Consolidated methodology for coal mine methane projects**. The package follows tidyverse idioms and offers applicability checks, equation helpers, simulation utilities, and wrappers for reproducing emission reduction estimates across coal mine methane capture, utilisation, and oxidation pathways.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/CDMLargeScale/cdmAcm0008")
+```
+
+## Getting Started
+
+```r
+library(cdmAcm0008)
+
+monitoring <- simulate_acm0008_dataset(periods = 3, seed = 123)
+
+if (check_applicability_mine_type("underground", TRUE) &&
+    all(check_applicability_methane_content(monitoring$methane_fraction, 0.3)) &&
+    all(check_applicability_utilisation_pathway("oxidation", TRUE))) {
+  period_summary <- aggregate_monitoring_periods_acm0008(monitoring)
+  totals <- estimate_emission_reductions_acm0008(monitoring)
+}
+```
+
+For a step-by-step walkthrough of the methodology equations consult the vignette in `vignettes/cdmAcm0008-methodology.Rmd`.

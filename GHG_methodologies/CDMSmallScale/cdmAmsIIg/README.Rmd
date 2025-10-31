@@ -1,0 +1,90 @@
+---
+title: "cdmAmsIIg"
+output: github_document
+---
+
+`cdmAmsIIg` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-II.G Energy efficiency in thermal applications of non-renewable biomass**. The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for efficient biomass technologies.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIIg")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIIg)
+
+applicable <- all(
+  check_applicability_fraction_bounds_iig(tibble::tibble(
+    baseline_non_renewable_fraction = 0.85,
+    project_non_renewable_fraction = 0.4
+  )),
+  check_applicability_efficiency_improvement_iig(
+    baseline_data = tibble::tibble(
+      baseline_biomass_consumption_tonnes = c(12, 14),
+      baseline_non_renewable_fraction = c(0.85, 0.88)
+    ),
+    project_data = tibble::tibble(
+      project_biomass_consumption_tonnes = c(7.2, 7.9),
+      project_non_renewable_fraction = c(0.4, 0.38)
+    ),
+    tolerance = 0.2
+  )
+)
+
+if (applicable) {
+  baseline <- tibble::tibble(
+    site_id = c("cookstove-1", "cookstove-2"),
+    baseline_biomass_consumption_tonnes = c(12, 14),
+    baseline_non_renewable_fraction = c(0.82, 0.88),
+    baseline_net_calorific_value_mj_per_tonne = c(15.2, 14.8),
+    baseline_emission_factor_tco2_per_mj = c(0.00009, 0.000092)
+  )
+  project <- tibble::tibble(
+    site_id = c("cookstove-1", "cookstove-2"),
+    project_biomass_consumption_tonnes = c(7.4, 8.0),
+    project_non_renewable_fraction = c(0.41, 0.39),
+    project_net_calorific_value_mj_per_tonne = c(15.4, 15.0),
+    project_emission_factor_tco2_per_mj = c(0.00009, 0.000092)
+  )
+  reductions <- estimate_emission_reductions_ams_iig(
+    baseline_data = baseline,
+    project_data = project,
+    group_cols = "site_id"
+  )
+  print(reductions)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIIg-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-II.G requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_efficiency_improvement_iig()` – confirms the project delivers a sufficient reduction in non-renewable biomass consumption.
+- `check_applicability_fraction_bounds_iig()` – validates that reported non-renewable fractions remain within the [0, 1] methodological bounds.
+- `check_applicability_monitoring_iig()` – verifies the monitoring dataset contains the required baseline and project parameters without missing values.
+
+## Key Equations
+
+`cdmAmsIIg` translates the numbered equations from AMS-II.G into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_non_renewable_biomass_iig()` | Applies the non-renewable fraction to baseline biomass consumption. |
+| (2) | `calculate_baseline_thermal_energy_iig()` | Converts baseline non-renewable biomass into thermal energy using the NCV. |
+| (3) | `calculate_project_thermal_energy_iig()` | Converts project non-renewable biomass into thermal energy. |
+| (4) | `calculate_emissions_from_energy_iig()` | Multiplies thermal energy by emission factors to obtain baseline or project emissions. |
+| (5) | `calculate_leakage_emissions_iig()` | Aggregates leakage associated with biomass supply chains. |
+| (6) | `calculate_emission_reductions_iig()` | Derives emission reductions after subtracting project and leakage emissions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iig()` chains these helpers together for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods_iig()` summarises measured data across reporting periods while preserving entity identifiers and emission factors.
+- `simulate_ams_iig_dataset()` generates example datasets with monitoring metadata to support tests, demos, and onboarding.

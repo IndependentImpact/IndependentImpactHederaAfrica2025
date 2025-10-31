@@ -1,0 +1,75 @@
+# cdmAmsIIq
+
+`cdmAmsIIq` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-II.Q Energy efficiency and/or energy supply projects in commercial buildings**. The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and simulation tools to reproduce emission reduction estimates for retrofits that combine high-efficiency equipment with onsite energy supply.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIIq")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIIq)
+
+inputs <- simulate_ams_iiq_inputs(n_buildings = 2, seed = 123)
+
+applicable <- all(
+  check_applicability_service_scope_iiq(
+    baseline_summary = tibble::tibble(
+      service = c("cooling", "lighting"),
+      baseline_units = c(4, 200)
+    ),
+    project_summary = tibble::tibble(
+      service = c("cooling", "lighting"),
+      project_units = c(2, 200)
+    )
+  ),
+  check_applicability_monitoring_iiq(dplyr::bind_cols(inputs$baseline_data, inputs$project_data)),
+  check_applicability_efficiency_gain_iiq(
+    baseline_data = inputs$baseline_data,
+    project_data = inputs$project_data,
+    group_cols = "building_id",
+    minimum_improvement = 0.05
+  )
+)
+
+if (applicable) {
+  reductions <- estimate_emission_reductions_ams_iiq(
+    baseline_data = inputs$baseline_data,
+    project_data = inputs$project_data,
+    leakage_data = inputs$leakage_data,
+    group_cols = "building_id"
+  )
+  print(reductions)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIIq-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-II.Q requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_service_scope_iiq()` – confirms that all baseline services remain covered and that the project does not increase unit counts.
+- `check_applicability_monitoring_iiq()` – verifies that the monitoring dataset contains the required baseline and project parameters without missing values.
+- `check_applicability_efficiency_gain_iiq()` – confirms the retrofit delivers the minimum efficiency gain relative to the baseline.
+
+## Key Equations
+
+`cdmAmsIIq` translates the numbered equations from AMS-II.Q into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_building_emissions_iiq()` | Multiplies baseline energy use by emission factors and reports optional energy intensity diagnostics. |
+| (2) | `calculate_project_building_emissions_iiq()` | Computes emissions from post-retrofit energy consumption and optional project energy intensity. |
+| (3) | `calculate_project_onsite_energy_emissions_iiq()` | Converts onsite energy supply into emissions using appropriate factors. |
+| (4) | `calculate_emission_reductions_iiq()` | Derives emission reductions after subtracting project and leakage emissions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iiq()` chains these helpers together for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `simulate_ams_iiq_inputs()` generates example baseline, project, and leakage datasets to support tests, demos, and onboarding.

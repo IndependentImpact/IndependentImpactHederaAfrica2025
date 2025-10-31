@@ -1,0 +1,137 @@
+---
+title: "ACM0019 Nitric Acid Abatement Workflow"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0019 Nitric Acid Abatement Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(cdmAcm0019)
+library(dplyr)
+library(tidyr)
+```
+
+## Introduction
+
+This vignette demonstrates the consolidated CDM methodology **ACM0019 N2O abatement from nitric acid production** using the `cdmAcm0019` package. The workflow follows tidyverse idioms and mirrors the structure of the official methodology: applicability diagnostics, simulation of monitoring data, equation walkthrough, monitoring-period aggregation, and an end-to-end estimator.
+
+## Applicability Checks
+
+```{r applicability}
+monitoring <- simulate_acm0019_dataset(periods = 2, observations_per_period = 10, seed = 101)
+
+check_applicability_monitoring_coverage(monitoring$data_capture_rate)
+check_applicability_catalyst_configuration(monitoring$catalyst_configuration)
+check_applicability_operating_regime("weak-acid", TRUE)
+```
+
+## Simulated Dataset
+
+```{r simulation}
+monitoring |> 
+  dplyr::select(period, production_tonnes, baseline_ef_kg_per_tonne, project_ef_kg_per_tonne,
+                electricity_mwh, grid_ef_t_per_mwh, steam_tonnes, steam_ef_t_per_tonne) |> 
+  head() |> 
+  knitr::kable()
+```
+
+## Equation Walkthrough
+
+```{r equations}
+example_row <- monitoring |> dplyr::slice(1)
+
+baseline <- calculate_baseline_emissions_acm0019(example_row$production_tonnes,
+                                                 example_row$baseline_ef_kg_per_tonne)
+project <- calculate_project_emissions_acm0019(example_row$production_tonnes,
+                                               example_row$project_ef_kg_per_tonne)
+leakage <- calculate_leakage_emissions_acm0019(example_row$electricity_mwh,
+                                               example_row$grid_ef_t_per_mwh,
+                                               example_row$steam_tonnes,
+                                               example_row$steam_ef_t_per_tonne)
+net <- calculate_net_emission_reductions_acm0019(baseline, project, leakage)
+
+tibble::tibble(Component = c("Baseline", "Project", "Leakage", "Net"),
+               Value_tCO2e = c(baseline, project, leakage, net))
+```
+
+## Monitoring Period Aggregation
+
+```{r aggregation}
+period_summary <- aggregate_monitoring_periods_acm0019(monitoring)
+period_summary |> knitr::kable()
+```
+
+## Meta-Function
+
+```{r meta}
+estimate_emission_reductions_acm0019(monitoring)
+```
+
+## Function Reference
+
+```{r reference}
+tibble::tibble(
+  Function = c(
+    "check_applicability_monitoring_coverage",
+    "check_applicability_catalyst_configuration",
+    "check_applicability_operating_regime",
+    "simulate_acm0019_dataset",
+    "calculate_baseline_emissions_acm0019",
+    "calculate_project_emissions_acm0019",
+    "calculate_leakage_emissions_acm0019",
+    "calculate_net_emission_reductions_acm0019",
+    "aggregate_monitoring_periods_acm0019",
+    "estimate_emission_reductions_acm0019"
+  ),
+  Signature = c(
+    "(data_capture_rate, minimum_coverage = 0.9)",
+    "(catalyst_configuration, allowed_configurations = c(\"secondary\", \"tertiary\"))",
+    "(plant_regime, has_continuous_monitoring)",
+    "(periods = 6, observations_per_period = 30, seed = NULL)",
+    "(production_tonnes, baseline_ef_kg_per_tonne, gwp_n2o = 265)",
+    "(production_tonnes, project_ef_kg_per_tonne, gwp_n2o = 265)",
+    "(electricity_mwh = 0, grid_ef_t_per_mwh = 0, steam_tonnes = 0, steam_ef_t_per_tonne = 0)",
+    "(baseline_emissions_tco2e, project_emissions_tco2e, leakage_emissions_tco2e = 0)",
+    "(monitoring_data)",
+    "(monitoring_data)"
+  ),
+  Purpose = c(
+    "Verify sufficient monitoring coverage",
+    "Confirm catalyst configuration eligibility",
+    "Ensure regime has continuous monitoring",
+    "Generate representative monitoring data",
+    "Compute baseline emissions",
+    "Compute project emissions",
+    "Quantify auxiliary leakage",
+    "Calculate net reductions",
+    "Aggregate monitoring periods",
+    "Summarise total reductions"
+  )
+) |> knitr::kable()
+```
+
+## Workflow Overview
+
+```{r workflow}
+tibble::tibble(
+  Step = c(
+    "Check applicability",
+    "Simulate or collect data",
+    "Apply equation helpers",
+    "Aggregate monitoring periods",
+    "Report totals"
+  ),
+  Description = c(
+    "Validate monitoring coverage, catalyst setup, and regime",
+    "Assemble nitric acid production and monitoring records",
+    "Compute baseline, project, leakage, and net reductions",
+    "Roll observations up to reporting periods",
+    "Generate project-level emission reduction totals"
+  )
+) |> knitr::kable()
+```
+

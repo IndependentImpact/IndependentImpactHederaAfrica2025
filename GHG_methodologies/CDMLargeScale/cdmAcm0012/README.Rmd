@@ -1,0 +1,38 @@
+---
+title: "cdmAcm0012"
+output: github_document
+---
+
+# cdmAcm0012
+
+`cdmAcm0012` implements the Clean Development Mechanism (CDM) large-scale methodology
+**ACM0012 Waste energy recovery**. The package follows tidyverse design principles and
+exposes applicability checks, equation-level helpers, simulations, and meta-calculation
+wrappers to reproduce emission reduction estimates for projects that recover waste heat,
+waste gas, or waste pressure to generate electricity and useful thermal energy.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/CDMLargeScale/cdmAcm0012")
+```
+
+## Getting Started
+
+```r
+library(cdmAcm0012)
+
+data <- simulate_acm0012_dataset(6, observations_per_period = 10, seed = 123)
+
+if (check_waste_energy_fraction_acm0012(data$waste_energy_fraction[1]) &&
+    check_baseline_continuation_acm0012(data$baseline_operating_hours[1], data$project_operating_hours[1]) &&
+    check_metering_uncertainty_acm0012(data$measurement_uncertainty[1])) {
+  period_summary <- aggregate_monitoring_periods(data)
+  totals <- estimate_emission_reductions_acm0012(data)
+}
+```
+
+The period summaries include baseline, project, leakage, and net emission reductions
+for each monitoring period. For a full walk-through see the vignette in
+`vignettes/cdmAcm0012-methodology.Rmd`.

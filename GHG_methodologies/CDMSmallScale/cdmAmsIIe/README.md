@@ -1,0 +1,81 @@
+# cdmAmsIIe
+
+`cdmAmsIIe` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-II.E Energy efficiency and fuel switching measures for buildings**.
+
+The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for building energy efficiency interventions.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIIe")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIIe)
+
+monitoring <- simulate_ams_iie_dataset(n_buildings = 2, n_periods = 6)
+annual_monitoring <- aggregate_monitoring_periods(
+  monitoring,
+  period_col = monitoring_label,
+  group_cols = "building_id"
+)
+
+applicability <- assess_ams_iie_applicability(
+  baseline_data = annual_monitoring,
+  project_data = annual_monitoring,
+  monitoring_data = annual_monitoring
+)
+
+if (applicability$overall_applicable) {
+  baseline <- calculate_baseline_building_emissions(annual_monitoring, group_cols = "building_id")
+  project <- calculate_project_building_emissions(annual_monitoring, group_cols = "building_id")
+  leakage <- calculate_leakage_emissions(annual_monitoring,
+    group_cols = "building_id",
+    leakage_col = "leakage_emissions_tco2e"
+  )
+  emission_reductions <- estimate_emission_reductions(
+    baseline,
+    project,
+    leakage,
+    group_cols = "building_id"
+  )
+  emission_reductions_meta <- estimate_emission_reductions_ams_iie(
+    baseline_data = annual_monitoring,
+    project_data = annual_monitoring,
+    leakage_data = annual_monitoring,
+    group_cols = "building_id",
+    leakage_args = list(leakage_col = "leakage_emissions_tco2e")
+  )
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIIe-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-II.E requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_energy_efficiency()` – verifies the project delivers a meaningful reduction in energy intensity relative to a service indicator.
+- `check_applicability_fuel_switching()` – ensures the blended emission factor of the project thermal fuel mix is no higher than the baseline mix when fuel switching is part of the activity.
+- `check_applicability_monitoring()` – confirms monitoring datasets contain the required energy, service, and operating parameters without missing values.
+
+## Key Equations
+
+`cdmAmsIIe` translates the numbered equations from AMS-II.E into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_building_emissions()` | Aggregates baseline thermal and electricity emissions for each building. |
+| (2) | `calculate_project_building_emissions()` | Aggregates project thermal and electricity emissions after efficiency measures. |
+| (3) | `calculate_leakage_emissions()` | Sums leakage components from upstream or market effects. |
+| (4) | `estimate_emission_reductions()` | Combines baseline, project, and leakage emissions to obtain net emission reductions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iie()` chains these helpers for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while preserving building-level identifiers and numeric totals.
+- `simulate_ams_iie_dataset()` generates example datasets with monitoring metadata, baseline and project parameters, and leakage placeholders to support tests, demos, and onboarding.

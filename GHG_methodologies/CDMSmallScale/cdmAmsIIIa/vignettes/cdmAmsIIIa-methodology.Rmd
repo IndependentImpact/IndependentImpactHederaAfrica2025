@@ -1,0 +1,172 @@
+---
+title: "Implementing AMS-III.A with cdmAmsIIIa"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Implementing AMS-III.A with cdmAmsIIIa}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(cdmAmsIIIa)
+library(dplyr)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+## Introduction
+
+AMS-III.A quantifies emission reductions from replacing synthetic nitrogen fertilizer with biological inoculants on leguminous crops. The `cdmAmsIIIa` package implements the methodology using tidyverse-friendly helpers for applicability diagnostics, equation-level calculations, monitoring aggregation, and the end-to-end workflow.
+
+## Applicability Checks
+
+Projects must demonstrate that legumes are a significant portion of the cropping system, inoculants meet regulatory requirements, and monitoring spans at least three periods per management unit.
+
+```{r applicability}
+monitoring <- simulate_ams_iiia_dataset(n_farms = 3, n_periods = 3, seed = 2024)
+
+check_applicability_legume_share_iiia(
+  monitoring,
+  legume_area_col = "legume_area_ha",
+  total_area_col = "total_area_ha",
+  group_cols = "farm_id"
+)
+
+check_applicability_inoculant_registration_iiia(
+  monitoring,
+  registration_col = "inoculant_registered",
+  group_cols = "farm_id"
+)
+
+check_applicability_monitoring_practices_iiia(
+  monitoring,
+  monitoring_unit_cols = "farm_id"
+)
+```
+
+## Simulated Dataset
+
+The package provides a simulation utility to prototype workflows and tests.
+
+```{r simulation}
+monitoring |> 
+  select(farm_id, monitoring_period, baseline_synthetic_n_kg, project_synthetic_n_kg, inoculant_rate_kg_per_ha, legume_area_ha, leakage_emissions_tco2e) |> 
+  quiet_kable()
+```
+
+## Equation Walkthrough
+
+We first compute baseline fertilizer emissions, then project-period residual fertilizer and inoculant emissions, and finally leakage.
+
+```{r equations}
+baseline <- calculate_baseline_fertilizer_emissions_iiia(
+  monitoring,
+  fertilizer_use_col = "baseline_synthetic_n_kg",
+  production_emission_factor_col = "baseline_production_ef_tco2_per_kg",
+  field_emission_factor_col = "baseline_field_ef_tco2_per_kg",
+  group_cols = "farm_id"
+)
+
+project_fertilizer <- calculate_project_residual_fertilizer_emissions_iiia(
+  monitoring,
+  fertilizer_use_col = "project_synthetic_n_kg",
+  production_emission_factor_col = "project_production_ef_tco2_per_kg",
+  field_emission_factor_col = "project_field_ef_tco2_per_kg",
+  group_cols = "farm_id"
+)
+
+project_inoculant <- calculate_project_inoculant_emissions_iiia(
+  monitoring,
+  inoculant_rate_col = "inoculant_rate_kg_per_ha",
+  area_planted_col = "legume_area_ha",
+  inoculant_emission_factor_col = "inoculant_ef_tco2_per_kg",
+  group_cols = "farm_id"
+)
+
+leakage <- calculate_leakage_emissions_iiia(
+  monitoring,
+  group_cols = "farm_id",
+  leakage_col = "leakage_emissions_tco2e"
+)
+
+baseline
+project_fertilizer
+project_inoculant
+leakage
+```
+
+## Monitoring Period Aggregation
+
+Aggregate the simulated data to farm-level totals before computing emission reductions.
+
+```{r aggregation}
+period_results <- monitoring |>
+  mutate(
+    baseline_emissions_tco2e = baseline_synthetic_n_kg * (baseline_production_ef_tco2_per_kg + baseline_field_ef_tco2_per_kg),
+    project_fertilizer_emissions_tco2e = project_synthetic_n_kg * (project_production_ef_tco2_per_kg + project_field_ef_tco2_per_kg),
+    project_inoculant_emissions_tco2e = inoculant_rate_kg_per_ha * legume_area_ha * inoculant_ef_tco2_per_kg
+  )
+
+aggregate_monitoring_periods_iiia(
+  period_results,
+  group_cols = "farm_id",
+  monitoring_col = "monitoring_period"
+)
+```
+
+## Meta-Function
+
+The meta helper orchestrates the workflow and outputs tidy emission reductions.
+
+```{r meta}
+estimate_emission_reductions_ams_iiia(
+  baseline_data = monitoring,
+  project_data = monitoring,
+  leakage_data = monitoring,
+  group_cols = "farm_id",
+  leakage_col = "leakage_emissions_tco2e"
+)
+```
+
+## Function Reference
+
+```{r function-reference}
+reference <- tibble::tribble(
+  ~Function, ~Signature, ~Purpose,
+  "check_applicability_legume_share_iiia", "(data, legume_area_col, total_area_col, min_legume_share, group_cols)", "Verify legumes dominate the cropping pattern.",
+  "check_applicability_inoculant_registration_iiia", "(data, registration_col, group_cols)", "Ensure inoculants meet regulatory standards.",
+  "check_applicability_monitoring_practices_iiia", "(data, monitoring_unit_cols, min_periods)", "Confirm monitoring spans the minimum periods.",
+  "calculate_baseline_fertilizer_emissions_iiia", "(data, fertilizer_use_col, production_emission_factor_col, field_emission_factor_col, group_cols)", "Baseline emissions from synthetic nitrogen use.<br>\\(BE_y = \\sum_i N_{i,y} \\times (EF^{prod}_{i,y} + EF^{field}_{i,y})\\)",
+  "calculate_project_residual_fertilizer_emissions_iiia", "(data, fertilizer_use_col, production_emission_factor_col, field_emission_factor_col, group_cols)", "Project residual fertilizer emissions.<br>\\(PE^{fert}_y = \\sum_i N^{proj}_{i,y} \\times (EF^{prod}_{i,y} + EF^{field}_{i,y})\\)",
+  "calculate_project_inoculant_emissions_iiia", "(data, inoculant_rate_col, area_planted_col, inoculant_emission_factor_col, group_cols)", "Project inoculant emissions.<br>\\(PE^{inoc}_y = \\sum_i R_{i,y} \\times A_{i,y} \\times EF^{inoc}_{i,y}\\)",
+  "calculate_leakage_emissions_iiia", "(data, leakage_col, group_cols)", "Aggregate leakage emissions.<br>\\(LE_y = \\sum_i LE_{i,y}\\)",
+  "calculate_emission_reductions_iiia", "(baseline_emissions, project_emissions, leakage_emissions, group_cols)", "Net emission reductions.<br>\\(ER_y = BE_y - (PE^{fert}_y + PE^{inoc}_y + LE_y)\\)",
+  "aggregate_monitoring_periods_iiia", "(data, group_cols, monitoring_col)", "Summarise monitoring data across periods.<br>\\(ER_{p,y} = BE_{p,y} - (PE_{p,y} + LE_{p,y})\\)",
+  "estimate_emission_reductions_ams_iiia", "(baseline_data, project_data, leakage_data, group_cols, ...)", "Run the AMS-III.A workflow.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)"
+)
+
+quiet_kable(reference, escape = FALSE)
+```
+
+## Workflow Overview
+
+```{r workflow-overview}
+workflow <- tibble::tribble(
+  ~Step, ~Description,
+  "1", "Assess applicability using legume share, inoculant registration, and monitoring checks.",
+  "2", "Compile baseline fertilizer and project monitoring data for inoculated legumes.",
+  "3", "Calculate baseline fertilizer emissions and project residual fertilizer emissions.",
+  "4", "Quantify inoculant lifecycle emissions and leakage adjustments.",
+  "5", "Aggregate monitoring periods to reporting units and compute net emission reductions with the meta helper."
+)
+
+quiet_kable(workflow)
+```
+

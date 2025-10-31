@@ -1,0 +1,126 @@
+---
+title: "AMS-I.D Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.D Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.D calculations using `cdmAmsId`. The
+methodology covers renewable electricity generation serving captive mini-grids or isolated
+distribution systems that displace fossil-fuel-based generation. The core steps include
+summing baseline electricity delivered, applying baseline emission factors, and accounting
+for any residual project emissions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsId)
+check_applicability_mini_grid_capacity(capacity_kw = 12000)
+check_applicability_renewable_penetration(renewable_fraction = 0.82)
+check_applicability_baseline_fossil_share(baseline_fossil_share = 0.75)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_id_dataset(n_grids = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`, `month`,
+`day`, and `monitoring_label`) so that calculations can be aggregated over reporting
+periods while preserving grid-level identifiers.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_supply <- calculate_baseline_electricity_supply(example_data, group_cols = "grid_id")
+baseline_emissions <- calculate_baseline_emissions(
+  baseline_supply,
+  baseline_emission_factor = example_data$baseline_emission_factor[1]
+)
+project_emissions <- calculate_project_emissions(
+  baseline_supply,
+  project_emission_factor = example_data$project_emission_factor[1]
+)
+emission_reductions <- calculate_emission_reductions(baseline_emissions, project_emissions)
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  supply_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "grid_id",
+  electricity_col = "electricity_mwh",
+  baseline_factor_col = "baseline_emission_factor"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_id(
+  supply_data = example_data,
+  baseline_emission_factor = example_data$baseline_emission_factor[1],
+  project_emission_factor = example_data$project_emission_factor[1],
+  group_cols = "grid_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_electricity_supply()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_id()`",
+    "`simulate_ams_id_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_electricity_supply(supply_data, electricity_col = \"electricity_mwh\", group_cols = NULL)`",
+    "`calculate_baseline_emissions(baseline_supply, baseline_emission_factor, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions(baseline_supply, project_emission_factor = 0, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(supply_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"grid_id\")`",
+    "`estimate_emission_reductions_ams_id(supply_data, baseline_emission_factor, project_emission_factor = 0, group_cols = NULL)`",
+    "`simulate_ams_id_dataset(n_grids = 10, n_periods = 12, start_year = 2023, start_month = 1, mean_supply_mwh = 18000, sd_supply_mwh = 2500, baseline_emission_factor = 0.7, project_emission_factor = 0.02)`"
+  ),
+  Purpose = c(
+    "Summed baseline electricity supply for each group or monitoring period.<br>\\(E^{BL}_y = \\sum_i E_{i,y}\\)",
+    "Baseline emissions derived from fossil electricity emission factors.<br>\\(BE_y = E^{BL}_y \\times EF^{BL}\\)",
+    "Project emissions reflecting auxiliary fossil generation.<br>\\(PE_y = E^{BL}_y \\times EF^{PR}\\)",
+    "Emission reductions obtained from the difference between baseline and project emissions.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Monitoring-period aggregation consistent with methodology equations.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Meta-calculation wrapper chaining the equation helpers.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Data generator for examples, testing, and onboarding."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```

@@ -1,0 +1,24 @@
+# cdmAcm0018
+
+The `cdmAcm0018` package provides helper functions that implement the core
+calculations, applicability checks, and simulation utilities for the CDM
+large-scale methodology **ACM0018 — Electricity generation from biomass in
+power-only plants**. The package follows the same tidyverse-oriented structure
+as the other methodology packages in this repository.
+
+## Installation
+
+From the repository root you can install the package with:
+
+```r
+remotes::install_local("CDMLargeScale/cdmAcm0018")
+```
+
+## Example
+
+```r
+library(cdmAcm0018)
+
+monitoring <- simulate_acm0018_dataset(2, seed = 123)
+aggregate_monitoring_periods_acm0018(monitoring)
+```

@@ -1,0 +1,4 @@
+period,methane_generation_m3,baseline_capture_efficiency,methane_captured_m3,destruction_efficiency,auxiliary_fuel_tj,electricity_import_mwh,leakage_fraction
+Period 01,4800,0.05,1200,0.9,0.02,12,0.04
+Period 02,5050,0.05,1300,0.91,0.021,10,0.03
+Period 03,4950,0.05,1250,0.92,0.019,11,0.035

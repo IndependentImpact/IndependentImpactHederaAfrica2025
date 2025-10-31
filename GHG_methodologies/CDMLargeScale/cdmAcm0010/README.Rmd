@@ -1,0 +1,31 @@
+---
+title: "cdmAcm0010"
+output: github_document
+---
+
+# cdmAcm0010
+
+`cdmAcm0010` implements the Clean Development Mechanism (CDM) large-scale methodology **ACM0010 Consolidated methodology for emission reductions from manure management systems**. The package follows tidyverse idioms and provides applicability helpers, methane accounting equations, simulation tools, and end-to-end estimators for anaerobic digestion projects that displace baseline lagoon management.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/CDMLargeScale/cdmAcm0010")
+```
+
+## Getting Started
+
+```r
+library(cdmAcm0010)
+
+dataset <- simulate_acm0010_dataset(periods = 3, seed = 42)
+
+if (check_applicability_feedstock_mix(c("manure", "wastewater")) &&
+    all(check_applicability_baseline_system(dataset$baseline_system))) {
+  period_summary <- aggregate_monitoring_periods_acm0010(dataset)
+  totals <- estimate_emission_reductions_acm0010(dataset)
+}
+```
+
+For a step-by-step walkthrough of the methodology equations consult the vignette in `vignettes/cdmAcm0010-methodology.Rmd`.

@@ -1,0 +1,155 @@
+---
+title: "AMS-II.C Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-II.C Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-II.C calculations using
+`cdmAmsIIc`. The methodology covers demand-side energy efficiency projects that
+retrofit specific technologies (lighting, motors, HVAC, refrigeration) with more
+efficient alternatives. The core steps include aggregating baseline and project
+energy, computing energy savings, and converting the savings into emission
+reductions with the appropriate grid or fuel emission factor.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIIc)
+check_applicability_energy_savings(annual_energy_savings_mwh = 42000)
+check_applicability_technology(c("efficient_lighting", "variable_speed_drives"))
+check_applicability_monitoring("continuous_metering")
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_iic_dataset(n_sites = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`,
+`month`, `day`, and `monitoring_label`) so that calculations can be aggregated
+over reporting periods while preserving site-level identifiers and emission
+factors.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_energy <- calculate_baseline_energy_consumption(example_data, group_cols = "site_id")
+project_energy <- calculate_project_energy_consumption(example_data, group_cols = "site_id")
+energy_savings <- calculate_energy_savings(baseline_energy, project_energy)
+emission_reductions <- calculate_emission_reductions(
+  energy_savings,
+  emission_factor = example_data$emission_factor_tco2e_mwh[1]
+)
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  efficiency_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "site_id",
+  baseline_energy_col = "baseline_energy_mwh",
+  project_energy_col = "project_energy_mwh",
+  emission_factor_col = "emission_factor_tco2e_mwh"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+wrapper_results <- estimate_emission_reductions_ams_iic(
+  baseline_data = example_data,
+  project_data = example_data,
+  emission_factor = example_data$emission_factor_tco2e_mwh[1],
+  group_cols = "site_id",
+  baseline_energy_col = "baseline_energy_mwh",
+  project_energy_col = "project_energy_mwh"
+)
+
+quiet_kable(wrapper_results, format = "html", digits = 3)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_energy_consumption()`",
+    "`calculate_project_energy_consumption()`",
+    "`calculate_energy_savings()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_iic()`",
+    "`simulate_ams_iic_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_energy_consumption(baseline_data, energy_col = \"baseline_energy_mwh\", group_cols = NULL, output_col = \"baseline_energy_mwh\")`",
+    "`calculate_project_energy_consumption(project_data, energy_col = \"project_energy_mwh\", group_cols = NULL, output_col = \"project_energy_mwh\")`",
+    "`calculate_energy_savings(baseline_energy, project_energy, baseline_col = \"baseline_energy_mwh\", project_col = \"project_energy_mwh\", output_col = \"energy_savings_mwh\")`",
+    "`calculate_emission_reductions(energy_savings, emission_factor, savings_col = \"energy_savings_mwh\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(efficiency_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"site_id\", baseline_energy_col = \"baseline_energy_mwh\", project_energy_col = \"project_energy_mwh\", emission_factor_col = \"emission_factor_tco2e_mwh\")`",
+    "`estimate_emission_reductions_ams_iic(baseline_data, project_data, emission_factor, group_cols = NULL, baseline_energy_col = \"baseline_energy_mwh\", project_energy_col = \"project_energy_mwh\")`",
+    "`simulate_ams_iic_dataset(n_sites = 8, n_periods = 12, start_year = 2023, start_month = 1, baseline_energy_mean = 120, project_energy_mean = 75, emission_factor = 0.62)`"
+  ),
+  Purpose = c(
+    "Aggregates baseline energy consumption prior to efficiency upgrades.<br>\\(E_{BL,y} = \\sum_i E_{BL,i,y}\\)",
+    "Summarises monitored project energy use for efficient technologies.<br>\\(E_{PR,y} = \\sum_i E_{PR,i,y}\\)",
+    "Computes energy savings as the difference between baseline and project energy.<br>\\(ES_y = E_{BL,y} - E_{PR,y}\\)",
+    "Converts energy savings to emission reductions using emission factors.<br>\\(ER_y = ES_y \\times EF_y\\)",
+    "Rolls monitoring data to reporting periods with energy and emission summaries.<br>\\(ER_{p,y} = (\\sum_i E_{BL,i,p,y} - \\sum_i E_{PR,i,p,y}) \\times EF_{p,y}\\)",
+    "High-level wrapper composing baseline, project, and reduction helpers.<br>\\(ER_y = (E_{BL,y} - E_{PR,y}) \\times EF_y\\)",
+    "Generates representative efficiency datasets for demonstrations and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input efficiency monitoring data",
+    "calculate_baseline_energy_consumption",
+    "calculate_project_energy_consumption",
+    "calculate_energy_savings",
+    "calculate_emission_reductions",
+    "estimate_emission_reductions_ams_iic"
+  ),
+  Purpose = c(
+    "Collect site-level baseline and project energy measurements.",
+    "Aggregate baseline energy consumption prior to retrofits.",
+    "Aggregate project energy consumption after retrofits.",
+    "Compute savings that feed subsequent emission calculations.",
+    "Convert energy savings to emission reductions using emission factors.",
+    "Return a tidy tibble with reductions and supporting diagnostics."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

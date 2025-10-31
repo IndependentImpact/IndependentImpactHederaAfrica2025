@@ -1,0 +1,191 @@
+---
+title: "AMS-II.F Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-II.F Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-II.F calculations using
+`cdmAmsIIf`. The methodology covers agricultural energy efficiency and fuel
+switching projects that reduce fossil fuel use in processing, irrigation, or
+cooling systems. The core steps include estimating baseline emissions,
+calculating project emissions, accounting for leakage, and deriving net emission
+reductions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIIf)
+
+baseline <- tibble::tibble(
+  baseline_total_energy_mwh = c(220, 195),
+  baseline_fuel_energy_gj = c(320, 180),
+  baseline_fuel_emission_factor_tco2_per_gj = c(0.07, 0.072),
+  service_level_indicator = c(420, 380)
+)
+project <- tibble::tibble(
+  project_total_energy_mwh = c(150, 138),
+  project_fuel_energy_gj = c(210, 120),
+  project_fuel_emission_factor_tco2_per_gj = c(0.045, 0.05),
+  service_level_indicator = c(420, 380)
+)
+monitoring <- tibble::tibble(
+  project_total_energy_mwh = c(12.5, 11.2),
+  service_level_indicator = c(0.35, 0.32),
+  operating_hours = c(220, 215)
+)
+
+applicability <- assess_ams_iif_applicability(
+  baseline_data = baseline,
+  project_data = project,
+  monitoring_data = monitoring,
+  intensity_args = list(energy_col = "baseline_total_energy_mwh",
+                        project_energy_col = "project_total_energy_mwh",
+                        output_col = "service_level_indicator"),
+  fuel_switch_args = list(energy_col = "baseline_fuel_energy_gj",
+                          emission_factor_col = "baseline_fuel_emission_factor_tco2_per_gj",
+                          project_energy_col = "project_fuel_energy_gj",
+                          project_emission_factor_col = "project_fuel_emission_factor_tco2_per_gj")
+)
+applicability
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(2024)
+example_data <- simulate_ams_iif_dataset(n_facilities = 3, n_periods = 4)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`facility_id`, `year`, `month`,
+`day`, and `monitoring_label`) alongside baseline fuel and electricity use,
+project conditions, service indicators, and leakage placeholders.
+
+# Equation Walkthrough
+
+```{r equations}
+baseline_emissions <- calculate_baseline_agricultural_emissions(
+  example_data,
+  group_cols = c("facility_id", "monitoring_label")
+)
+project_emissions <- calculate_project_agricultural_emissions(
+  example_data,
+  group_cols = c("facility_id", "monitoring_label")
+)
+leakage_emissions <- calculate_leakage_emissions_iif(
+  example_data,
+  group_cols = c("facility_id", "monitoring_label"),
+  leakage_col = "leakage_emissions_tco2e"
+)
+
+emission_reductions <- calculate_emission_reductions_iif(
+  baseline_emissions,
+  project_emissions,
+  leakage_emissions,
+  group_cols = c("facility_id", "monitoring_label")
+)
+
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods_iif(
+  monitoring_data = example_data,
+  period_col = "monitoring_label",
+  group_cols = "facility_id"
+)
+
+quiet_kable(period_summary, format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_iif(
+  baseline_data = example_data,
+  project_data = example_data,
+  leakage_data = example_data,
+  group_cols = c("facility_id", "monitoring_label"),
+  leakage_args = list(leakage_col = "leakage_emissions_tco2e")
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_agricultural_emissions()`",
+    "`calculate_project_agricultural_emissions()`",
+    "`calculate_leakage_emissions_iif()`",
+    "`calculate_emission_reductions_iif()`",
+    "`aggregate_monitoring_periods_iif()`",
+    "`estimate_emission_reductions_ams_iif()`",
+    "`simulate_ams_iif_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_agricultural_emissions(baseline_data, fuel_energy_col = \"baseline_fuel_energy_gj\", fuel_emission_factor_col = \"baseline_fuel_emission_factor_tco2_per_gj\", electricity_col = \"baseline_electricity_mwh\", electricity_emission_factor_col = \"baseline_electricity_emission_factor_tco2_per_mwh\", group_cols = NULL, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_agricultural_emissions(project_data, fuel_energy_col = \"project_fuel_energy_gj\", fuel_emission_factor_col = \"project_fuel_emission_factor_tco2_per_gj\", electricity_col = \"project_electricity_mwh\", electricity_emission_factor_col = \"project_electricity_emission_factor_tco2_per_mwh\", group_cols = NULL, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_leakage_emissions_iif(leakage_data, leakage_col = \"leakage_emissions_tco2e\", group_cols = NULL, output_col = \"leakage_emissions_tco2e\")`",
+    "`calculate_emission_reductions_iif(baseline_emissions, project_emissions, leakage_emissions = NULL, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", leakage_col = \"leakage_emissions_tco2e\", output_col = \"emission_reductions_tco2e\", group_cols = NULL)`",
+    "`aggregate_monitoring_periods_iif(monitoring_data, period_col = \"monitoring_period\", group_cols = NULL, summarise_cols = NULL, output_col = \"monitoring_period\")`",
+    "`estimate_emission_reductions_ams_iif(baseline_data, project_data, leakage_data = NULL, group_cols = NULL, baseline_args = list(), project_args = list(), leakage_args = list(), reduction_args = list())`",
+    "`simulate_ams_iif_dataset(n_facilities = 6, n_periods = 12, start_year = 2023, start_month = 1, baseline_electricity_mean = 140, baseline_fuel_mean = 420, electricity_savings = 0.22, fuel_savings = 0.38, fuel_switch_reduction = 0.35)`"
+  ),
+  Purpose = c(
+    "Aggregates baseline fossil fuel and electricity use into emissions.<br>\\(BE_y = \\sum_i Fuel^{BL}_{i,y} \\times EF^{fuel,BL}_{i,y} + \\sum_i E^{el,BL}_{i,y} \\times EF^{el,BL}_{i,y}\\)",
+    "Summarises project energy use into comparable emission totals.<br>\\(PE_y = \\sum_i Fuel^{PR}_{i,y} \\times EF^{fuel,PR}_{i,y} + \\sum_i E^{el,PR}_{i,y} \\times EF^{el,PR}_{i,y}\\)",
+    "Collects leakage emissions associated with agricultural interventions.<br>\\(LE_y = \\sum_i LE_{i,y}\\)",
+    "Computes emission reductions from baseline, project, and leakage components.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Rolls monitoring data to reporting periods for downstream analysis.<br>\\(ER_{p,y} = BE_{p,y} - (PE_{p,y} + LE_{p,y})\\)",
+    "Wrapper orchestrating the baseline, project, leakage, and reduction helpers.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Generates representative agricultural monitoring datasets for demos and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input agricultural monitoring data",
+    "calculate_baseline_agricultural_emissions",
+    "calculate_project_agricultural_emissions",
+    "calculate_leakage_emissions_iif",
+    "calculate_emission_reductions_iif",
+    "estimate_emission_reductions_ams_iif"
+  ),
+  Purpose = c(
+    "Collect facility-level baseline, project, and leakage metrics.",
+    "Translate baseline fuel and electricity use into emissions.",
+    "Quantify project emissions after efficiency and fuel-switch measures.",
+    "Summarise leakage contributions across the supply chain.",
+    "Compute net emission reductions for each facility-period.",
+    "Return a tidy tibble with reductions and diagnostic columns."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

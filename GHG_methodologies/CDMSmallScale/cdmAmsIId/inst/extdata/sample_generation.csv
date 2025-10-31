@@ -1,0 +1,4 @@
+facility_id,baseline_fuel_quantity,baseline_ncv_gj_per_unit,baseline_emission_factor_tco2_per_gj,baseline_efficiency,project_fuel_quantity,project_ncv_gj_per_unit,project_emission_factor_tco2_per_gj,project_efficiency,electricity_emissions_tco2e,leakage_emissions_tco2e
+facility_1,1180,0.039,0.094,0.7,920,0.039,0.083,0.84,0.8,6.5
+facility_2,960,0.041,0.095,0.68,760,0.041,0.084,0.82,0.6,4.8
+facility_3,1040,0.038,0.096,0.69,810,0.038,0.085,0.83,0.7,5.2

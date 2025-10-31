@@ -1,0 +1,29 @@
+Package: cdmAmsIIIaj
+Title: Implementation of CDM Small-Scale Methodology AMS-III.AJ
+Version: 0.1.0
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Description: Provides tidyverse-aligned tooling for the Clean Development Mechanism
+    small-scale methodology AMS-III.AJ "Recovery and recycling of materials from solid wastes".
+    Functions translate key equations, applicability conditions, simulation utilities,
+    and workflow orchestration helpers into reproducible R code for recycling programmes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    rlang,
+    tibble,
+    tidyr,
+    purrr,
+    stats
+Suggests:
+    testthat (>= 3.0.0),
+    roxygen2,
+    devtools,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

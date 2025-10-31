@@ -1,0 +1,92 @@
+---
+title: "cdmAmsIId"
+output: github_document
+---
+
+`cdmAmsIId` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-II.D Energy efficiency and fuel switching measures for industrial facilities**.
+
+The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for industrial energy efficiency and fuel switching interventions.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIId")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIId)
+
+monitoring <- simulate_ams_iid_dataset(n_facilities = 2, n_periods = 6)
+annual_monitoring <- aggregate_monitoring_periods(
+  monitoring,
+  period_col = monitoring_label,
+  group_cols = "facility_id"
+)
+
+applicability <- assess_ams_iid_applicability(
+  baseline_data = monitoring,
+  project_data = monitoring,
+  monitoring_data = monitoring
+)
+
+if (applicability$overall_applicable) {
+  baseline <- calculate_baseline_fossil_emissions(annual_monitoring, group_cols = "facility_id")
+  project <- calculate_project_fossil_emissions(annual_monitoring,
+    group_cols = "facility_id",
+    electricity_col = electricity_emissions_tco2e
+  )
+  leakage <- calculate_leakage_emissions(annual_monitoring,
+    group_cols = "facility_id",
+    leakage_col = leakage_emissions_tco2e
+  )
+  emission_reductions <- estimate_emission_reductions(
+    baseline,
+    project,
+    leakage,
+    group_cols = "facility_id"
+  )
+  emission_reductions_meta <- estimate_emission_reductions_ams_iid(
+    baseline_data = annual_monitoring,
+    project_data = annual_monitoring,
+    leakage_data = annual_monitoring,
+    group_cols = "facility_id",
+    baseline_args = list(output_col = "baseline_emissions_tco2e"),
+    project_args = list(
+      electricity_col = "electricity_emissions_tco2e",
+      output_col = "project_emissions_tco2e"
+    ),
+    leakage_args = list(leakage_col = "leakage_emissions_tco2e")
+  )
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIId-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-II.D requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_energy_efficiency()` – verifies the project delivers a meaningful reduction in specific fuel consumption after accounting for efficiency gains.
+- `check_applicability_fuel_switching()` – ensures the blended emission factor of the project fuel mix is no higher than the baseline mix when fuel switching is part of the activity.
+- `check_applicability_monitoring()` – confirms monitoring datasets contain the required parameters (fuel use, efficiency, and useful heat output) without missing values.
+
+## Key Equations
+
+`cdmAmsIId` translates the numbered equations from AMS-II.D into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_fossil_emissions()` | Aggregates baseline fossil fuel emissions adjusted for baseline efficiency. |
+| (2) | `calculate_project_fossil_emissions()` | Aggregates monitored project emissions including optional indirect electricity emissions. |
+| (3) | `calculate_leakage_emissions()` | Sums leakage components from upstream or market effects. |
+| (4) | `estimate_emission_reductions()` | Combines baseline, project, and leakage emissions to obtain net emission reductions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iid()` chains these helpers for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while preserving facility-level identifiers and numeric totals.
+- `simulate_ams_iid_dataset()` generates example datasets with monitoring metadata, baseline and project parameters, and leakage placeholders to support tests, demos, and onboarding.

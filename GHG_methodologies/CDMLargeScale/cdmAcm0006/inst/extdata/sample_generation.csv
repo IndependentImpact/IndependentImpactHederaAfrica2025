@@ -1,0 +1,4 @@
+period,heat_output_tj,electricity_output_mwh,baseline_heat_ef,baseline_electricity_ef,auxiliary_fossil_tj,auxiliary_fossil_ef,electricity_import_mwh,import_emission_factor,biomass_transport_tkm,transport_emission_factor,leakage_fraction
+Period 01,8.1,410,82,0.72,0.16,74,24,0.7,460,0.0001,0.03
+Period 02,7.8,395,79,0.71,0.14,74,27,0.7,445,0.0001,0.04
+Period 03,8.4,420,81,0.69,0.15,74,23,0.7,470,0.0001,0.02

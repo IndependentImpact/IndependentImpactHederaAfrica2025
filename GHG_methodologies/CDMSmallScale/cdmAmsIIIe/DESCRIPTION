@@ -1,0 +1,28 @@
+Package: cdmAmsIIIe
+Title: Implementation of CDM Small-Scale Methodology AMS-III.E
+Version: 0.1.0
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Description: Provides tidyverse-aligned tooling to implement the Clean Development Mechanism
+    small-scale methodology AMS-III.E "Avoidance of methane production from decay of biomass".
+    Functions translate key equations, applicability conditions, simulation utilities, and
+    calculation workflows into reproducible R code.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    rlang,
+    tibble,
+    stats,
+    tidyr
+Suggests:
+    testthat (>= 3.0.0),
+    roxygen2,
+    devtools,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

@@ -1,0 +1,110 @@
+---
+title: "AMS-III.H Wastewater Methane Recovery Workflow"
+author: "OpenAI Assistant"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-III.H Wastewater Methane Recovery Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+AMS-III.H covers project activities that recover and utilise methane from anaerobic wastewater treatment. This vignette demonstrates how `cdmAmsIIIh` operationalises the methodology with tidyverse data structures and composable helpers.
+
+# Simulate Monitoring Data
+
+```{r simulate}
+library(cdmAmsIIIh)
+library(dplyr)
+
+simulated <- simulate_ams_iiih_dataset(n_sites = 2, n_periods = 2, seed = 2025)
+str(simulated, max.level = 1)
+```
+
+# Check Applicability
+
+```{r applicability}
+wastewater <- check_applicability_wastewater_characteristics_iiih(simulated$applicability, group_cols = "site_id")
+recovery <- check_applicability_recovery_system_iiih(simulated$applicability, group_cols = "site_id")
+monitoring <- check_applicability_monitoring_framework_iiih(simulated$applicability, group_cols = "site_id")
+
+applicability <- wastewater %>%
+  left_join(recovery, by = "site_id") %>%
+  left_join(monitoring, by = "site_id")
+
+applicability
+```
+
+# Run Equation Helpers
+
+```{r helpers}
+baseline <- calculate_baseline_methane_emissions_iiih(
+  simulated$baseline,
+  group_cols = "site_id",
+  days_col = "days_in_period"
+)
+project <- calculate_project_emissions_iiih(
+  simulated$project,
+  group_cols = "site_id",
+  days_col = "days_in_period"
+)
+leakage <- calculate_leakage_emissions_iiih(simulated$leakage, group_cols = "site_id")
+
+dplyr::bind_cols(baseline, project[-1], leakage[-1])
+```
+
+# Estimate Emission Reductions
+
+```{r workflow}
+reductions <- estimate_emission_reductions_ams_iiih(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = "site_id",
+  baseline_args = list(days_col = "days_in_period"),
+  project_args = list(days_col = "days_in_period")
+)
+
+reductions
+```
+
+# Aggregate Monitoring Periods
+
+```{r aggregate}
+baseline_period <- calculate_baseline_methane_emissions_iiih(
+  simulated$baseline,
+  group_cols = c("site_id", "period"),
+  days_col = "days_in_period"
+)
+project_period <- calculate_project_emissions_iiih(
+  simulated$project,
+  group_cols = c("site_id", "period"),
+  days_col = "days_in_period"
+)
+leakage_period <- calculate_leakage_emissions_iiih(
+  simulated$leakage,
+  group_cols = c("site_id", "period")
+)
+
+period_results <- baseline_period %>%
+  left_join(project_period, by = c("site_id", "period")) %>%
+  left_join(leakage_period, by = c("site_id", "period")) %>%
+  mutate(monitoring_period = period)
+
+aggregate_monitoring_periods_iiih(
+  period_results,
+  group_cols = "site_id",
+  monitoring_col = "monitoring_period"
+)
+```
+
+The helpers and workflow wrapper simplify reproducing AMS-III.H calculations with tidy inputs while providing traceable applicability evidence.

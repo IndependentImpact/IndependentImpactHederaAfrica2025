@@ -1,0 +1,154 @@
+---
+title: "AMS-I.J Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.J Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.J calculations using `cdmAmsIj`. The
+methodology covers solar water heating systems that displace fossil or electric water heating.
+The core steps include summing useful solar thermal output, applying baseline emission factors,
+and accounting for auxiliary energy use.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIj)
+check_applicability_swh_capacity(capacity_mwth = 18)
+check_applicability_solar_resource(annual_irradiation_kwhm2 = 1900)
+check_applicability_backup_fraction(backup_fraction = 0.15)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_ij_dataset(n_sites = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`, `month`,
+`day`, and `monitoring_label`) so that calculations can be aggregated over reporting
+periods while preserving site-level identifiers.
+
+# Equation Walkthrough
+
+```{r calculations}
+useful_output <- calculate_useful_thermal_output(example_data, group_cols = "site_id")
+baseline_emissions <- calculate_baseline_emissions(
+  useful_output,
+  baseline_emission_factor = example_data$baseline_emission_factor[1]
+)
+project_emissions <- calculate_project_emissions_auxiliary(
+  example_data,
+  energy_col = "auxiliary_energy_mwh",
+  emission_factor = example_data$auxiliary_emission_factor[1],
+  group_cols = "site_id"
+)
+emission_reductions <- calculate_emission_reductions(baseline_emissions, project_emissions)
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  thermal_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "site_id",
+  useful_energy_col = "useful_heat_mwh",
+  auxiliary_energy_col = "auxiliary_energy_mwh",
+  baseline_factor_col = "baseline_emission_factor",
+  auxiliary_factor_col = "auxiliary_emission_factor"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_ij(
+  thermal_data = example_data,
+  baseline_emission_factor = example_data$baseline_emission_factor[1],
+  auxiliary_emission_factor = example_data$auxiliary_emission_factor[1],
+  group_cols = "site_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_useful_thermal_output()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions_auxiliary()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_ij()`",
+    "`simulate_ams_ij_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_useful_thermal_output(thermal_data, energy_col = \"useful_heat_mwh\", group_cols = NULL)`",
+    "`calculate_baseline_emissions(useful_output, baseline_emission_factor, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions_auxiliary(auxiliary_data, energy_col = \"auxiliary_energy_mwh\", emission_factor = 0, group_cols = NULL)`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(thermal_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"site_id\")`",
+    "`estimate_emission_reductions_ams_ij(thermal_data, baseline_emission_factor, auxiliary_emission_factor = 0, group_cols = NULL)`",
+    "`simulate_ams_ij_dataset(n_sites = 10, n_periods = 12, start_year = 2023, start_month = 1, mean_useful_heat_mwh = 360, sd_useful_heat_mwh = 55, baseline_emission_factor = 0.22, auxiliary_emission_factor = 0.18)`"
+  ),
+  Purpose = c(
+    "Summed useful solar thermal output for each group or monitoring period.<br>\\(Q^{useful}_y = \\sum_i Q_{i,y}\\)",
+    "Baseline emissions derived from displaced conventional water heating.<br>\\(BE_y = Q^{useful}_y \\times EF^{BL}\\)",
+    "Project emissions reflecting auxiliary heating energy.<br>\\(PE_y = \\sum_i AUX_{i,y} \\times EF^{aux}_{i,y}\\)",
+    "Emission reductions obtained from the difference between baseline and project emissions.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Monitoring-period aggregation consistent with methodology equations.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Meta-calculation wrapper chaining the equation helpers.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Data generator for examples, testing, and onboarding."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input solar thermal monitoring data",
+    "calculate_useful_thermal_output",
+    "calculate_baseline_emissions",
+    "calculate_project_emissions_auxiliary",
+    "calculate_emission_reductions",
+    "estimate_emission_reductions_ams_ij"
+  ),
+  Purpose = c(
+    "Collect monitoring period, useful heat, auxiliary energy, and emission factor metrics.",
+    "Summarise useful solar thermal output for each site or reporting period.",
+    "Apply baseline emission factors to displaced conventional energy use.",
+    "Convert auxiliary energy consumption into project emissions.",
+    "Compare baseline and project totals to obtain emission reductions.",
+    "Return a tidy tibble with reductions and supporting diagnostics."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

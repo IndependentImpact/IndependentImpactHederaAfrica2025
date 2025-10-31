@@ -1,0 +1,4 @@
+facility_id,baseline_fuel_energy_gj,baseline_fuel_emission_factor_tco2_per_gj,baseline_electricity_mwh,baseline_electricity_emission_factor_tco2_per_mwh,project_fuel_energy_gj,project_fuel_emission_factor_tco2_per_gj,project_electricity_mwh,project_electricity_emission_factor_tco2_per_mwh,service_level_indicator,operating_hours,leakage_emissions_tco2e
+facility_1,1180,0.074,210,0.61,640,0.032,160,0.61,430,215,7.8
+facility_2,1020,0.072,195,0.59,590,0.031,150,0.59,402,212,6.9
+facility_3,940,0.071,178,0.6,560,0.030,142,0.6,388,208,6.1

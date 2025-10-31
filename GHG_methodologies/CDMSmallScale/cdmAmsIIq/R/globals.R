@@ -1,0 +1,11 @@
+utils::globalVariables(c(
+  ".emissions",
+  ".energy_use",
+  ".energy",
+  ".service",
+  "energy_intensity",
+  "project_grid_emissions_tco2e",
+  "project_onsite_emissions_tco2e",
+  "energy_total",
+  "service_total"
+))

@@ -1,0 +1,90 @@
+---
+title: "ACM0001 Landfill Gas Methodology"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0001 Landfill Gas Methodology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(cdmAcm0001)
+library(dplyr)
+```
+
+## Introduction
+
+ACM0001 covers methane capture, flaring, and utilisation at landfill sites. This vignette walks through the core workflow implemented in `cdmAcm0001` using the package's simulation helpers.
+
+## Applicability Checks
+
+```{r}
+check_applicability_landfill_management("sanitary", TRUE)
+check_applicability_gas_collection(TRUE, 0.35)
+```
+
+## Simulated Dataset
+
+```{r}
+set.seed(321)
+simulated <- simulate_acm0001_dataset(4)
+knitr::kable(simulated)
+```
+
+## Equation Walkthrough
+
+```{r}
+baseline <- calculate_baseline_emissions_acm0001(simulated$methane_generation_m3,
+                                                  simulated$baseline_capture_efficiency)
+project <- calculate_project_emissions_acm0001(simulated$methane_captured_m3,
+                                               simulated$destruction_efficiency,
+                                               auxiliary_fuel_tj = simulated$auxiliary_fuel_tj,
+                                               electricity_import_mwh = simulated$electricity_import_mwh)
+leakage <- calculate_leakage_emissions_acm0001(simulated$leakage_fraction,
+                                               simulated$methane_captured_m3)
+reductions <- calculate_emission_reductions_acm0001(baseline, project, leakage)
+knitr::kable(tibble(period = simulated$period, baseline, project, leakage, reductions))
+```
+
+## Monitoring Period Aggregation
+
+```{r}
+period_summary <- aggregate_monitoring_periods(simulated)
+knitr::kable(period_summary)
+```
+
+## Meta-Function
+
+```{r}
+estimate_emission_reductions_acm0001(simulated)
+```
+
+## Function Reference
+
+```{r}
+reference <- tibble::tribble(
+  ~Function, ~Signature, ~Purpose,
+  "check_applicability_landfill_management", "(landfill_management, has_leachate_control)", "Landfill management eligibility",
+  "check_applicability_gas_collection", "(collection_system_installed, expected_capture_efficiency, minimum_efficiency)", "Gas collection readiness",
+  "simulate_acm0001_dataset", "(n_periods = 12, seed = NULL)", "Generate demonstration monitoring data",
+  "aggregate_monitoring_periods", "(monitoring_data)", "Summarise monitoring periods",
+  "estimate_emission_reductions_acm0001", "(monitoring_data)", "Portfolio totals"
+)
+knitr::kable(reference)
+```
+
+## Workflow Overview
+
+```{r}
+workflow <- tibble::tribble(
+  ~Step, ~Description,
+  1, "Validate landfill management and gas collection applicability.",
+  2, "Collect monitoring data on methane generation, capture, and auxiliary energy.",
+  3, "Translate methane volumes to baseline and project emissions.",
+  4, "Aggregate monitoring periods and compute emission reductions.",
+  5, "Summarise totals for reporting and verification."
+)
+knitr::kable(workflow)
+```

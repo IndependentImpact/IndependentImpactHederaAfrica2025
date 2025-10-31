@@ -1,0 +1,180 @@
+---
+title: "AMS-II.E Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-II.E Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-II.E calculations using
+`cdmAmsIIe`. The methodology covers building energy efficiency and fuel
+switching projects that improve thermal and electrical performance. The core
+steps include estimating baseline emissions, calculating project emissions,
+accounting for leakage, and deriving net emission reductions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIIe)
+
+baseline <- tibble::tibble(
+  baseline_total_energy_mwh = c(220, 195),
+  baseline_thermal_energy_gj = c(320, 180),
+  baseline_thermal_emission_factor_tco2_per_gj = c(0.07, 0.072),
+  service_level_indicator = c(4.2, 3.9)
+)
+project <- tibble::tibble(
+  project_total_energy_mwh = c(150, 138),
+  project_thermal_energy_gj = c(280, 120),
+  project_thermal_emission_factor_tco2_per_gj = c(0.045, 0.05),
+  service_level_indicator = c(4.2, 3.9)
+)
+monitoring <- tibble::tibble(
+  building_id = c("Office_A", "Office_B"),
+  project_total_energy_mwh = c(12.5, 11.2),
+  service_level_indicator = c(0.35, 0.32),
+  operating_hours = c(220, 215)
+)
+
+check_applicability_energy_efficiency(
+  baseline,
+  project,
+  energy_col = "baseline_total_energy_mwh",
+  project_energy_col = "project_total_energy_mwh",
+  service_col = "service_level_indicator"
+)
+check_applicability_fuel_switching(baseline, project)
+check_applicability_monitoring(monitoring)
+assess_ams_iie_applicability(baseline, project, monitoring)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_iie_dataset(n_buildings = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`,
+`month`, `day`, and `monitoring_label`) along with baseline/project parameters,
+service indicators, and leakage placeholders.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_emissions <- calculate_baseline_building_emissions(example_data, group_cols = "building_id")
+project_emissions <- calculate_project_building_emissions(example_data, group_cols = "building_id")
+leakage_emissions <- calculate_leakage_emissions(
+  example_data,
+  group_cols = "building_id",
+  leakage_col = "leakage_emissions_tco2e"
+)
+emission_reductions <- estimate_emission_reductions(
+  baseline_emissions,
+  project_emissions,
+  leakage_emissions,
+  group_cols = "building_id"
+)
+quiet_kable(emission_reductions, format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  monitoring_data = example_data,
+  period_col = "monitoring_label",
+  group_cols = "building_id"
+)
+
+quiet_kable(period_summary, format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_iie(
+  baseline_data = example_data,
+  project_data = example_data,
+  leakage_data = example_data,
+  group_cols = "building_id",
+  leakage_args = list(leakage_col = "leakage_emissions_tco2e")
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_building_emissions()`",
+    "`calculate_project_building_emissions()`",
+    "`calculate_leakage_emissions()`",
+    "`estimate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_iie()`",
+    "`simulate_ams_iie_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_building_emissions(baseline_data, thermal_energy_col = \"baseline_thermal_energy_gj\", thermal_emission_factor_col = \"baseline_thermal_emission_factor_tco2_per_gj\", electricity_col = \"baseline_electricity_mwh\", electricity_emission_factor_col = \"baseline_electricity_emission_factor_tco2_per_mwh\", group_cols = NULL, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_building_emissions(project_data, thermal_energy_col = \"project_thermal_energy_gj\", thermal_emission_factor_col = \"project_thermal_emission_factor_tco2_per_gj\", electricity_col = \"project_electricity_mwh\", electricity_emission_factor_col = \"project_electricity_emission_factor_tco2_per_mwh\", group_cols = NULL, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_leakage_emissions(leakage_data, leakage_col = \"leakage_emissions_tco2e\", group_cols = NULL, output_col = \"leakage_emissions_tco2e\")`",
+    "`estimate_emission_reductions(baseline_emissions, project_emissions, leakage_emissions = NULL, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", leakage_col = \"leakage_emissions_tco2e\", group_cols = NULL, output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(monitoring_data, period_col = \"monitoring_period\", group_cols = NULL, summarise_cols = NULL, output_col = \"monitoring_period\")`",
+    "`estimate_emission_reductions_ams_iie(baseline_data, project_data, leakage_data = NULL, group_cols = NULL, baseline_args = list(), project_args = list(), leakage_args = list(), reduction_args = list())`",
+    "`simulate_ams_iie_dataset(n_buildings = 10, n_periods = 12, start_year = 2023, start_month = 1, seed = NULL)`"
+  ),
+  Purpose = c(
+    "Aggregates baseline thermal and electricity energy into emissions.<br>\\(BE_y = \\sum_i Q^{th,BL}_{i,y} \\times EF^{th,BL}_{i,y} + \\sum_i E^{el,BL}_{i,y} \\times EF^{el,BL}_{i,y}\\)",
+    "Summarises project thermal and electricity emissions after interventions.<br>\\(PE_y = \\sum_i Q^{th,PR}_{i,y} \\times EF^{th,PR}_{i,y} + \\sum_i E^{el,PR}_{i,y} \\times EF^{el,PR}_{i,y}\\)",
+    "Collects leakage emissions associated with the building project activity.<br>\\(LE_y = \\sum_i LE_{i,y}\\)",
+    "Combines baseline, project, and leakage totals to compute net reductions.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Rolls monitoring data to the reporting periods for analysis.<br>\\(ER_{p,y} = BE_{p,y} - (PE_{p,y} + LE_{p,y})\\)",
+    "High-level wrapper orchestrating baseline, project, and leakage helpers.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Generates representative building datasets for demonstrations and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input building monitoring data",
+    "calculate_baseline_building_emissions",
+    "calculate_project_building_emissions",
+    "calculate_leakage_emissions",
+    "estimate_emission_reductions",
+    "estimate_emission_reductions_ams_iie"
+  ),
+  Purpose = c(
+    "Collect baseline, project, and leakage measurements for each building.",
+    "Translate baseline thermal and electricity use into emissions.",
+    "Quantify project emissions after efficiency or fuel switching measures.",
+    "Summarise leakage contributions for each monitoring group.",
+    "Derive net emission reductions from baseline, project, and leakage totals.",
+    "Return a tidy tibble with reductions and supporting diagnostics."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

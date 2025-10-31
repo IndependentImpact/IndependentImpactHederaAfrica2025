@@ -1,0 +1,151 @@
+---
+title: "AMS-III.AJ Methodology Walkthrough"
+author: "cdmAmsIIIaj"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-III.AJ Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+`cdmAmsIIIaj` provides tidyverse-aligned helpers that translate the Clean Development Mechanism (CDM) small-scale methodology **AMS-III.AJ Recovery and recycling of materials from solid wastes** into reproducible R code. The vignette demonstrates how to assess applicability, simulate data, evaluate each numbered equation, and aggregate monitoring periods.
+
+# Applicability Checks
+
+```{r applicability, message=FALSE}
+library(cdmAmsIIIaj)
+library(dplyr)
+
+simulated <- simulate_ams_iiiaj_dataset(n_facilities = 2, n_periods = 3, seed = 2025)
+
+applicability_quality <- check_applicability_material_quality_iiiaj(simulated$applicability, group_cols = "facility_id")
+applicability_collection <- check_applicability_collection_network_iiiaj(simulated$applicability, group_cols = "facility_id")
+applicability_monitoring <- check_applicability_monitoring_plan_iiiaj(simulated$applicability, group_cols = "facility_id")
+
+applicability_quality %>%
+  left_join(applicability_collection, by = "facility_id") %>%
+  left_join(applicability_monitoring, by = "facility_id")
+```
+
+# Simulated Dataset
+
+```{r simulation}
+str(simulated, max.level = 1)
+```
+
+# Equation Walkthrough
+
+```{r equations}
+baseline <- calculate_baseline_emissions_iiiaj(
+  simulated$baseline,
+  group_cols = "facility_id",
+  days_col = "days_in_period"
+)
+
+project <- calculate_project_emissions_iiiaj(
+  simulated$project,
+  group_cols = "facility_id",
+  days_col = "days_in_period"
+)
+
+leakage <- calculate_leakage_emissions_iiiaj(
+  simulated$leakage,
+  group_cols = "facility_id"
+)
+
+list(baseline = baseline, project = project, leakage = leakage)
+```
+
+# Monitoring Period Aggregation
+
+```{r aggregation}
+aggregate_monitoring_periods_iiiaj(
+  simulated$baseline,
+  group_cols = c("facility_id")
+)
+```
+
+# Meta-Function
+
+```{r meta}
+reductions <- estimate_emission_reductions_ams_iiiaj(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = "facility_id",
+  baseline_args = list(days_col = "days_in_period"),
+  project_args = list(days_col = "days_in_period")
+)
+reductions
+```
+
+# Function Reference
+
+```{r reference}
+tibble::tibble(
+  Function = c(
+    "calculate_baseline_emissions_iiiaj",
+    "calculate_project_emissions_iiiaj",
+    "calculate_leakage_emissions_iiiaj",
+    "calculate_emission_reductions_iiiaj",
+    "aggregate_monitoring_periods_iiiaj",
+    "estimate_emission_reductions_ams_iiiaj",
+    "check_applicability_material_quality_iiiaj",
+    "check_applicability_collection_network_iiiaj",
+    "check_applicability_monitoring_plan_iiiaj",
+    "simulate_ams_iiiaj_dataset"
+  ),
+  Signature = c(
+    "(data, material_processed_col, ...)",
+    "(data, electricity_consumption_col, ...)",
+    "(data, collected_material_col, ...)",
+    "(baseline, project, leakage, ...)",
+    "(data, group_cols, sum_cols = NULL)",
+    "(baseline_data, project_data, leakage_data, ...)",
+    "(data, material_type_col, ...)",
+    "(data, segregation_rate_col, ...)",
+    "(data, throughput_monitoring_col, ...)",
+    "(n_facilities = 3, n_periods = 4, seed = NULL)"
+  ),
+  Purpose = c(
+    "Implements baseline equation (1) for avoided virgin and disposal emissions.<br>\\(BE_y = \\sum_i M^{proc}_{i,y} (EF^{vir}_{i} + f^{res}_{i,y} \\times EF^{disp}_{i})\\)",
+    "Implements project equation (2) for energy and auxiliary material emissions.<br>\\(PE_y = \\sum_i (E^{el}_{i,y} \\times EF^{el}_{i} + F^{th}_{i,y} \\times EF^{th}_{i} + S_{i,y} \\times EF^{supp}_{i})\\)",
+    "Implements leakage equation (3) covering logistics and market effects.<br>\\(LE_y = \\sum_i (M^{col}_{i,y} \\times D_{i,y} \\times EF^{trans}_{i} + R_{i,y} \\times EF^{disp}_{i} + M^{out}_{i,y} \\times f^{market}_{i,y} \\times EF^{market}_{i})\\)",
+    "Combines equations to deliver net emission reductions.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Aggregates monitoring data across reporting periods.<br>\\(ER_{p,y} = BE_{p,y} - (PE_{p,y} + LE_{p,y})\\)",
+    "Runs the full AMS-III.AJ estimation workflow.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Tests recycled material quality applicability conditions.",
+    "Evaluates collection network applicability conditions.",
+    "Verifies monitoring plan applicability conditions.",
+    "Generates simulated datasets for analysis and testing."
+  )
+) %>%
+  quiet_kable(escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow}
+tibble::tribble(
+  ~Step, ~Description,
+  "Applicability", "Use the three applicability helpers to confirm project eligibility.",
+  "Simulation", "Generate or ingest monitoring datasets for baseline, project, and leakage streams.",
+  "Equations", "Run the equation-level helpers to compute emissions components.",
+  "Aggregation", "Aggregate monitoring data to reporting periods as required.",
+  "Meta", "Call `estimate_emission_reductions_ams_iiiaj()` to produce net results."
+) %>%
+  quiet_kable()
+```

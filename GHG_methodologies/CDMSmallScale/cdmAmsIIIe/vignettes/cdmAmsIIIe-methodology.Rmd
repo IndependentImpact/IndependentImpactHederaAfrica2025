@@ -1,0 +1,89 @@
+---
+title: "AMS-III.E Biomass Treatment Workflow"
+author: "OpenAI Assistant"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-III.E Biomass Treatment Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+AMS-III.E covers project activities that avoid methane production from the decay of biomass by subjecting the material to combustion, gasification, or mechanical-thermal treatment. This vignette demonstrates how `cdmAmsIIIe` operationalises the methodology with tidyverse data structures and composable helpers.
+
+# Simulate Monitoring Data
+
+```{r simulate}
+library(cdmAmsIIIe)
+library(dplyr)
+
+simulated <- simulate_ams_iiie_dataset(n_plants = 2, n_periods = 2, seed = 2024)
+str(simulated, max.level = 1)
+```
+
+# Check Applicability
+
+```{r applicability}
+feedstock <- check_applicability_feedstock_characteristics_iiie(simulated$applicability, group_cols = "plant_id")
+control <- check_applicability_biomass_control_iiie(simulated$applicability, group_cols = "plant_id")
+monitoring <- check_applicability_monitoring_practices_iiie(simulated$applicability, group_cols = "plant_id")
+
+applicability <- feedstock %>%
+  left_join(control, by = "plant_id") %>%
+  left_join(monitoring, by = "plant_id")
+
+applicability
+```
+
+# Run Equation Helpers
+
+```{r helpers}
+baseline <- calculate_baseline_methane_emissions_iiie(simulated$baseline, group_cols = "plant_id")
+project <- calculate_project_emissions_iiie(simulated$project, group_cols = "plant_id")
+leakage <- calculate_leakage_emissions_iiie(simulated$leakage, group_cols = "plant_id")
+
+dplyr::bind_cols(baseline, project[-1], leakage[-1])
+```
+
+# Estimate Emission Reductions
+
+```{r workflow}
+reductions <- estimate_emission_reductions_ams_iiie(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = "plant_id"
+)
+
+reductions
+```
+
+# Aggregate Monitoring Periods
+
+```{r aggregate}
+period_results <- simulated$baseline %>%
+  mutate(
+    baseline_emissions_tco2e = calculate_baseline_methane_emissions_iiie(
+      data = ., group_cols = NULL
+    )$baseline_emissions_tco2e / n(),
+    project_emissions_tco2e = calculate_project_emissions_iiie(
+      data = simulated$project, group_cols = NULL
+    )$project_emissions_tco2e / n(),
+    leakage_emissions_tco2e = calculate_leakage_emissions_iiie(
+      data = simulated$leakage, group_cols = NULL
+    )$leakage_emissions_tco2e / n()
+  )
+
+aggregate_monitoring_periods_iiie(period_results, group_cols = "plant_id", monitoring_col = "period")
+```
+
+The helpers and workflow wrapper simplify reproducing AMS-III.E calculations with tidy inputs while providing traceable applicability evidence.

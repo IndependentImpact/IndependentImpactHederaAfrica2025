@@ -1,0 +1,116 @@
+---
+title: "ACM0010 Methodology Walkthrough"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0010 Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette documents the workflow implemented by `cdmAcm0010` for the Clean Development Mechanism (CDM) methodology ACM0010. The methodology targets methane emission reductions from manure management systems that install anaerobic digestion to capture and combust biogas.
+
+# Applicability Checks
+
+```{r}
+library(cdmAcm0010)
+
+check_applicability_feedstock_mix(c("manure", "wastewater"))
+check_applicability_baseline_system(c("open lagoon", "composting"))
+```
+
+# Simulated Dataset
+
+```{r}
+monitoring <- simulate_acm0010_dataset(periods = 6, seed = 2025)
+knitr::kable(head(monitoring))
+```
+
+# Equation Walkthrough
+
+```{r}
+monitoring <- monitoring |>
+  dplyr::mutate(
+    cod_removed_kg = calculate_cod_removed_acm0010(cod_in_mg_l, cod_out_mg_l, flow_m3),
+    baseline_emissions_tco2e = calculate_baseline_emissions_acm0010(cod_removed_kg, methane_conversion_factor),
+    project_emissions_tco2e = calculate_project_emissions_acm0010(methane_recovered_m3, combustion_efficiency),
+    leakage_emissions_tco2e = calculate_leakage_emissions_acm0010(electricity_consumed_mwh, grid_emission_factor, additional_leakage_tco2e)
+  )
+knitr::kable(head(monitoring))
+```
+
+# Monitoring Period Aggregation
+
+```{r}
+monitoring <- monitoring |>
+  dplyr::mutate(
+    net_emission_reductions_tco2e = calculate_net_emission_reductions_acm0010(
+      baseline_emissions_tco2e,
+      project_emissions_tco2e,
+      leakage_emissions_tco2e
+    )
+  )
+aggregate_monitoring_periods_acm0010(monitoring) |>
+  knitr::kable()
+```
+
+# Meta-Function
+
+```{r}
+results <- estimate_emission_reductions_acm0010(simulate_acm0010_dataset(periods = 12, seed = 42))
+results$total_emission_reductions
+```
+
+# Function Reference
+
+```{r}
+reference <- tibble::tibble(
+  Function = c(
+    "check_applicability_feedstock_mix",
+    "calculate_baseline_emissions_acm0010",
+    "estimate_emission_reductions_acm0010"
+  ),
+  Signature = c(
+    "(feedstock, eligible = 0.7)",
+    "(cod_removed_kg, methane_conversion_factor, methane_fraction = 0.67, gwp_ch4 = 28)",
+    "(data, gwp_ch4 = 28, methane_density = 0.0007168)"
+  ),
+  Purpose = c(
+    "Validate eligible feedstock composition",
+    "Compute baseline emissions from COD removal",
+    "Run the end-to-end ACM0010 estimator"
+  )
+)
+knitr::kable(reference)
+```
+
+# Workflow Overview
+
+```{r}
+workflow <- tibble::tibble(
+  Step = c(
+    "Confirm applicability",
+    "Assemble monitoring dataset",
+    "Run equation helpers",
+    "Aggregate monitoring periods",
+    "Report emission reductions"
+  ),
+  Description = c(
+    "Ensure feedstock mix and baseline system meet ACM0010 criteria",
+    "Collect COD, flow, methane recovery, and energy data",
+    "Transform monitoring data into emissions metrics",
+    "Summarise emissions by reporting period",
+    "Compile baseline, project, leakage, and net reductions"
+  )
+)
+knitr::kable(workflow)
+```

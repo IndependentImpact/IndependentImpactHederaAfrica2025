@@ -1,0 +1,37 @@
+---
+title: "cdmAcm0001"
+output: github_document
+---
+
+# cdmAcm0001
+
+`cdmAcm0001` implements the Clean Development Mechanism (CDM) large-scale methodology
+**ACM0001 Flaring or use of landfill gas**. The package follows tidyverse design
+principles and exposes applicability checks, equation-level helpers, and meta-calculation
+wrappers to reproduce emission reduction estimates for landfill gas capture, flaring,
+and energy utilisation projects.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/CDMLargeScale/cdmAcm0001")
+```
+
+## Getting Started
+
+```r
+library(cdmAcm0001)
+
+data <- simulate_acm0001_dataset(6, seed = 123)
+
+if (check_applicability_landfill_management("sanitary", TRUE) &&
+    check_applicability_gas_collection(TRUE, 0.35)) {
+  period_summary <- aggregate_monitoring_periods(data)
+  totals <- estimate_emission_reductions_acm0001(data)
+}
+```
+
+The period summaries now include methane destruction expressed in tonnes and
+tonnes of CO2e, alongside oxidation-adjusted baseline emissions. For a full
+walk-through see the vignette in `vignettes/cdmAcm0001-methodology.Rmd`.

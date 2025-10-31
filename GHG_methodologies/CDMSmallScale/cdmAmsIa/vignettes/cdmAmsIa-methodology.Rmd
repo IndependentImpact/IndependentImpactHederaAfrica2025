@@ -1,0 +1,140 @@
+
+---
+title: "AMS-I.A Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.A Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.A calculations using `cdmAmsIa`. The
+methodology covers on-site renewable electricity systems that displace fossil electricity
+consumption by the end user. The core steps involve calculating baseline generation, estimating
+emissions using a grid factor, and confirming negligible project emissions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIa)
+check_applicability_installed_capacity(capacity_kw = 1000, renewable_fraction = 1)
+check_applicability_distributed_generation(fossil_fraction_baseline = 0.85)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_ia_dataset(n_users = 6, n_periods = 4, start_year = 2024, start_month = 10)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 2
+)
+```
+
+The simulation now includes explicit monitoring metadata (`monitoring_period`, `year`, `month`,
+`day`, and `monitoring_label`) so that calculations can be aggregated over reporting periods.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_gen <- calculate_baseline_generation(example_data, group_cols = "user_id")
+baseline_emis <- calculate_baseline_emissions(baseline_gen, grid_emission_factor = 0.75)
+project_emis <- calculate_project_emissions(baseline_gen)
+emission_reductions <- calculate_emission_reductions(baseline_emis, project_emis)
+quiet_kable(head(emission_reductions), format = "html", digits = 2)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  generation_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "user_id"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 2)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_ia(
+  generation_data = example_data,
+  grid_emission_factor = 0.75,
+  group_cols = "user_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_generation()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_ia()`",
+    "`simulate_ams_ia_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_generation(generation_data, generation_col = \"generation_kwh\", group_cols = NULL)`",
+    "`calculate_baseline_emissions(baseline_generation, grid_emission_factor, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions(baseline_generation, project_emission_factor = 0, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(generation_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"user_id\")`",
+    "`estimate_emission_reductions_ams_ia(generation_data, grid_emission_factor, project_emission_factor = 0, group_cols = NULL)`",
+    "`simulate_ams_ia_dataset(n_users = 20, n_periods = 12, start_year = 2023, start_month = 1, mean_generation_kwh = 15000, sd_generation_kwh = 2000, grid_emission_factor = 0.75)`"
+  ),
+  Purpose = c(
+    "Summed baseline generation for each group or monitoring period.<br>\\(E^{BL}_y = \\sum_i E_{i,y}\\)",
+    "Baseline emissions using the applicable grid factor.<br>\\(BE_y = E^{BL}_y \\times EF^{grid}\\)",
+    "Project emissions (typically zero for AMS-I.A).<br>\\(PE_y = E^{BL}_y \\times EF^{PR}\\)",
+    "Emission reductions for each monitoring period.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Aggregates monitoring data to reporting periods.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Meta-calculation composing the core equations.<br>\\(ER_y = BE_y - PE_y\\)",
+    "DeclareDesign-based simulation with temporal monitoring metadata."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input generation data",
+    "calculate_baseline_generation",
+    "calculate_baseline_emissions",
+    "calculate_project_emissions",
+    "calculate_emission_reductions",
+    "estimate_emission_reductions_ams_ia"
+  ),
+  Purpose = c(
+    "Collect user-level generation and monitoring metadata.",
+    "Aggregate electricity delivered to each user or period.",
+    "Apply the grid emission factor to baseline generation.",
+    "Account for any residual project emissions (often zero).",
+    "Compute emission reductions by differencing baselines and project values.",
+    "Provide a single wrapper returning reductions and supporting columns."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

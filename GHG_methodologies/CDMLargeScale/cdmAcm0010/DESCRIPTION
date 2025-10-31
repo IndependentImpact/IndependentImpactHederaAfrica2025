@@ -1,0 +1,24 @@
+Package: cdmAcm0010
+Title: Implementation of CDM Large-Scale Methodology ACM0010
+Version: 0.1.0
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Description: Provides tidyverse-aligned tooling to operationalise the Clean Development Mechanism methodology ACM0010 "Consolidated methodology for emission reductions from manure management systems". The package exposes applicability checks, equation-level helpers, monitoring-period aggregation, simulation utilities, and a meta-estimator that reproduces greenhouse gas accounting for anaerobic digestion projects treating organic wastewater and manure streams.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    tibble,
+    rlang,
+    stats
+Suggests: testthat (>= 3.0.0),
+    roxygen2,
+    devtools,
+    knitr,
+    rmarkdown,
+    DeclareDesign
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

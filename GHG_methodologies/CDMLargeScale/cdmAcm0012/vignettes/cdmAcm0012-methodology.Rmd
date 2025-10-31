@@ -1,0 +1,126 @@
+---
+title: "ACM0012 Waste Energy Recovery Methodology"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0012 Waste Energy Recovery Methodology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(cdmAcm0012)
+library(dplyr)
+```
+
+## Introduction
+
+ACM0012 covers projects that recover waste heat, waste gas, or waste pressure
+from industrial processes to generate electricity and useful thermal energy.
+This vignette walks through the core workflow implemented in `cdmAcm0012`
+using the package's simulation helpers.
+
+## Applicability Checks
+
+```{r}
+check_waste_energy_fraction_acm0012(0.82)
+check_baseline_continuation_acm0012(7800, 7500)
+check_metering_uncertainty_acm0012(0.012)
+```
+
+## Simulated Dataset
+
+```{r}
+set.seed(321)
+simulated <- simulate_acm0012_dataset(4, observations_per_period = 6)
+knitr::kable(head(simulated))
+```
+
+## Equation Walkthrough
+
+```{r}
+baseline_electricity <- calculate_baseline_electricity_emissions_acm0012(
+  simulated$electricity_export_mwh,
+  simulated$baseline_grid_ef_t_per_mwh
+)
+baseline_thermal <- calculate_baseline_thermal_emissions_acm0012(
+  simulated$thermal_export_gj,
+  simulated$baseline_thermal_ef_t_per_gj
+)
+baseline_total <- calculate_baseline_emissions_acm0012(
+  baseline_electricity,
+  baseline_thermal,
+  simulated$flare_gas_displacement_emissions
+)
+project_electricity <- calculate_project_electricity_emissions_acm0012(
+  simulated$electricity_import_mwh,
+  simulated$project_grid_ef_t_per_mwh
+)
+auxiliary <- calculate_auxiliary_fuel_emissions_acm0012(
+  simulated$auxiliary_fuel_tj,
+  simulated$auxiliary_ef_t_per_tj
+)
+methane <- calculate_methane_leakage_emissions_acm0012(
+  simulated$methane_leakage_nm3,
+  simulated$methane_density_t_per_nm3,
+  simulated$gwp_ch4
+)
+project_total <- calculate_project_emissions_acm0012(project_electricity, auxiliary, methane)
+leakage <- calculate_leakage_emissions_acm0012(
+  simulated$leakage_energy_mwh,
+  simulated$leakage_ef_t_per_mwh
+)
+reductions <- calculate_emission_reductions_acm0012(baseline_total, project_total, leakage)
+knitr::kable(
+  tibble(
+    period = simulated$period,
+    baseline_total,
+    project_total,
+    leakage,
+    reductions
+  )
+)
+```
+
+## Monitoring Period Aggregation
+
+```{r}
+period_summary <- aggregate_monitoring_periods(simulated)
+knitr::kable(period_summary)
+```
+
+## Meta-Function
+
+```{r}
+estimate_emission_reductions_acm0012(simulated)
+```
+
+## Function Reference
+
+```{r}
+reference <- tibble::tribble(
+  ~Function, ~Signature, ~Purpose,
+  "check_waste_energy_fraction_acm0012", "(waste_energy_fraction, threshold = 0.75)", "Validate waste energy share",
+  "check_baseline_continuation_acm0012", "(baseline_operating_hours, project_operating_hours)", "Confirm baseline continuity",
+  "check_metering_uncertainty_acm0012", "(measurement_uncertainty)", "Ensure metering accuracy",
+  "simulate_acm0012_dataset", "(n_periods = 12, observations_per_period = 30, seed = NULL)", "Generate demonstration monitoring data",
+  "aggregate_monitoring_periods", "(monitoring_data)", "Summarise monitoring periods",
+  "estimate_emission_reductions_acm0012", "(monitoring_data)", "Portfolio totals"
+)
+knitr::kable(reference)
+```
+
+## Workflow Overview
+
+```{r}
+workflow <- tibble::tribble(
+  ~Step, ~Description,
+  1, "Validate waste energy fraction, baseline continuation, and metering uncertainty.",
+  2, "Collect monitoring data on exported energy, auxiliary consumption, and leakage.",
+  3, "Translate monitoring data into baseline, project, and leakage emissions.",
+  4, "Aggregate monitoring periods and compute emission reductions.",
+  5, "Summarise totals for reporting and verification."
+)
+knitr::kable(workflow)
+```

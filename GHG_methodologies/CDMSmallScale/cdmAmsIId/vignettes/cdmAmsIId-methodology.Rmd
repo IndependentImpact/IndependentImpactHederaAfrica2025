@@ -1,0 +1,176 @@
+---
+title: "AMS-II.D Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-II.D Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-II.D calculations using
+`cdmAmsIId`. The methodology covers industrial energy efficiency and fuel
+switching projects that improve thermal system performance. The core steps
+include estimating baseline emissions, calculating project emissions, accounting
+for leakage, and deriving net emission reductions.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIId)
+
+baseline <- tibble::tibble(
+  baseline_fuel_quantity = c(1200, 900),
+  baseline_efficiency = c(0.72, 0.68),
+  baseline_emission_factor_tco2_per_gj = c(0.094, 0.094)
+)
+project <- tibble::tibble(
+  project_fuel_quantity = c(920, 720),
+  project_efficiency = c(0.84, 0.82),
+  project_emission_factor_tco2_per_gj = c(0.082, 0.082)
+)
+monitoring <- tibble::tibble(
+  project_fuel_quantity = c(80, 70),
+  project_efficiency = c(0.84, 0.8),
+  useful_heat_output = c(60, 55)
+)
+
+check_applicability_energy_efficiency(baseline, project)
+check_applicability_fuel_switching(baseline, project)
+check_applicability_monitoring(monitoring)
+assess_ams_iid_applicability(baseline, project, monitoring)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_iid_dataset(n_facilities = 4, n_periods = 6, start_year = 2024, start_month = 7)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`,
+`month`, `day`, and `monitoring_label`) along with baseline/project parameters
+and leakage placeholders.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_emissions <- calculate_baseline_fossil_emissions(example_data, group_cols = "facility_id")
+project_emissions <- calculate_project_fossil_emissions(
+  example_data,
+  group_cols = "facility_id",
+  electricity_col = "electricity_emissions_tco2e"
+)
+leakage_emissions <- calculate_leakage_emissions(
+  example_data,
+  group_cols = "facility_id",
+  leakage_col = "leakage_emissions_tco2e"
+)
+emission_reductions <- estimate_emission_reductions(
+  baseline_emissions,
+  project_emissions,
+  leakage_emissions,
+  group_cols = "facility_id"
+)
+quiet_kable(emission_reductions, format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  monitoring_data = example_data,
+  period_col = "monitoring_label",
+  group_cols = "facility_id"
+)
+
+quiet_kable(period_summary, format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_iid(
+  baseline_data = example_data,
+  project_data = example_data,
+  leakage_data = example_data,
+  group_cols = "facility_id",
+  project_args = list(electricity_col = "electricity_emissions_tco2e"),
+  leakage_args = list(leakage_col = "leakage_emissions_tco2e")
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_fossil_emissions()`",
+    "`calculate_project_fossil_emissions()`",
+    "`calculate_leakage_emissions()`",
+    "`estimate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_iid()`",
+    "`simulate_ams_iid_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_fossil_emissions(baseline_data, fuel_col = \"baseline_fuel_quantity\", ncv_col = \"baseline_ncv_gj_per_unit\", emission_factor_col = \"baseline_emission_factor_tco2_per_gj\", efficiency_col = \"baseline_efficiency\", group_cols = NULL, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_fossil_emissions(project_data, fuel_col = \"project_fuel_quantity\", ncv_col = \"project_ncv_gj_per_unit\", emission_factor_col = \"project_emission_factor_tco2_per_gj\", efficiency_col = \"project_efficiency\", electricity_col = NULL, group_cols = NULL, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_leakage_emissions(leakage_data, leakage_col = \"leakage_emissions_tco2e\", group_cols = NULL, output_col = \"leakage_emissions_tco2e\")`",
+    "`estimate_emission_reductions(baseline_emissions, project_emissions, leakage_emissions = NULL, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", leakage_col = \"leakage_emissions_tco2e\", group_cols = NULL, output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(monitoring_data, period_col = \"monitoring_period\", group_cols = NULL, summarise_cols = NULL, output_col = \"monitoring_period\")`",
+    "`estimate_emission_reductions_ams_iid(baseline_data, project_data, leakage_data = NULL, group_cols = NULL, baseline_args = list(), project_args = list(), leakage_args = list(), reduction_args = list())`",
+    "`simulate_ams_iid_dataset(n_facilities = 10, n_periods = 12, start_year = 2023, start_month = 1, seed = NULL)`"
+  ),
+  Purpose = c(
+    "Aggregates baseline fossil fuel use into emissions adjusted for system efficiency.<br>\\(BE_y = \\sum_i \\frac{FC^{BL}_{i,y} \\times NCV^{BL}_{i,y} \\times EF^{BL}_{i,y}}{\\eta^{BL}_{i,y}}\\)",
+    "Summarises project fossil emissions including auxiliary electricity where applicable.<br>\\(PE_y = \\sum_i \\frac{FC^{PR}_{i,y} \\times NCV^{PR}_{i,y} \\times EF^{PR}_{i,y}}{\\eta^{PR}_{i,y}} + ELEC_y\\)",
+    "Collects leakage emissions associated with the efficiency intervention.<br>\\(LE_y = \\sum_i LE_{i,y}\\)",
+    "Combines baseline, project, and leakage totals to compute net emission reductions.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Rolls monitoring data up to reporting periods for downstream analysis.<br>\\(ER_{p,y} = BE_{p,y} - (PE_{p,y} + LE_{p,y})\\)",
+    "High-level wrapper orchestrating baseline, project, and leakage calculations.<br>\\(ER_y = BE_y - (PE_y + LE_y)\\)",
+    "Generates representative monitoring data for demonstrations and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input efficiency monitoring data",
+    "calculate_baseline_fossil_emissions",
+    "calculate_project_fossil_emissions",
+    "calculate_leakage_emissions",
+    "estimate_emission_reductions",
+    "estimate_emission_reductions_ams_iid"
+  ),
+  Purpose = c(
+    "Collect facility-level baseline, project, and leakage parameters.",
+    "Translate baseline fuel consumption and efficiency into emissions.",
+    "Quantify project fossil emissions including electricity adjustments.",
+    "Summarise leakage contributions for each facility or period.",
+    "Derive net emission reductions from baseline, project, and leakage totals.",
+    "Return a tidy tibble with reductions and supporting diagnostics."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```

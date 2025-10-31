@@ -1,0 +1,130 @@
+---
+title: "ACM0013 Methodology Walkthrough"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0013 Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+This vignette documents the workflow implemented by `cdmAcm0013` for the Clean Development Mechanism (CDM) methodology ACM0013. The methodology covers new grid-connected fossil fuel power plants that employ a less greenhouse gas intensive technology than the baseline grid generation they displace.
+
+# Applicability Checks
+
+```{r}
+library(cdmAcm0013)
+
+dataset <- simulate_acm0013_dataset(periods = 2, seed = 2025)
+check_applicability_acm0013(dataset)
+```
+
+# Simulated Dataset
+
+```{r}
+monitoring <- simulate_acm0013_dataset(periods = 6, seed = 2025)
+knitr::kable(head(monitoring))
+```
+
+# Equation Walkthrough
+
+```{r}
+monitoring <- monitoring |>
+  dplyr::mutate(
+    baseline_emissions_tco2e = calculate_baseline_emissions_acm0013(
+      electricity_sent_out_mwh,
+      baseline_emission_factor_tco2_per_mwh
+    ),
+    project_emissions_tco2e = calculate_project_emissions_acm0013(
+      fuel_consumed,
+      fuel_emission_factor_tco2_per_unit,
+      auxiliary_electricity_mwh = auxiliary_electricity_mwh,
+      auxiliary_emission_factor_tco2_per_mwh = auxiliary_emission_factor_tco2_per_mwh,
+      other_project_emissions_tco2e = other_project_emissions_tco2e
+    ),
+    leakage_emissions_tco2e = calculate_leakage_emissions_acm0013(
+      upstream_fuel_emissions_tco2e,
+      displaced_unit_emissions_tco2e,
+      other_leakage_tco2e
+    )
+  )
+knitr::kable(head(monitoring))
+```
+
+# Monitoring Period Aggregation
+
+```{r}
+monitoring <- monitoring |>
+  dplyr::mutate(
+    net_emission_reductions_tco2e = calculate_net_emission_reductions_acm0013(
+      baseline_emissions_tco2e,
+      project_emissions_tco2e,
+      leakage_emissions_tco2e
+    )
+  )
+aggregate_monitoring_periods_acm0013(monitoring) |>
+  knitr::kable()
+```
+
+# Meta-Function
+
+```{r}
+results <- estimate_emission_reductions_acm0013(
+  simulate_acm0013_dataset(periods = 12, seed = 42)
+)
+results$total_emission_reductions
+```
+
+# Function Reference
+
+```{r}
+reference <- tibble::tibble(
+  Function = c(
+    "check_applicability_acm0013",
+    "calculate_baseline_emissions_acm0013",
+    "estimate_emission_reductions_acm0013"
+  ),
+  Signature = c(
+    "(data, efficiency_improvement_threshold = 0.1)",
+    "(electricity_generated_mwh, baseline_emission_factor_tco2_per_mwh)",
+    "(data)"
+  ),
+  Purpose = c(
+    "Validate ACM0013 applicability conditions",
+    "Compute baseline emissions for displaced grid electricity",
+    "Run the end-to-end ACM0013 estimator"
+  )
+)
+knitr::kable(reference)
+```
+
+# Workflow Overview
+
+```{r}
+workflow <- tibble::tibble(
+  Step = c(
+    "Confirm applicability",
+    "Assemble monitoring dataset",
+    "Run equation helpers",
+    "Aggregate monitoring periods",
+    "Report emission reductions"
+  ),
+  Description = c(
+    "Ensure the plant is new, grid-connected, and lower-emitting than the baseline",
+    "Collect electricity output, fuel consumption, and leakage parameters",
+    "Transform monitoring data into emissions metrics",
+    "Summarise emissions by reporting period",
+    "Compile baseline, project, leakage, and net reductions"
+  )
+)
+knitr::kable(workflow)
+```

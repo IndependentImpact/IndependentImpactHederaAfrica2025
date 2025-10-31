@@ -1,0 +1,69 @@
+# cdmAmsIIIaj
+
+`cdmAmsIIIaj` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-III.AJ Recovery and recycling of materials from solid wastes**. The package follows tidyverse design principles and exposes equation-level helpers, applicability diagnostics, simulation utilities, and workflow orchestration tools to reproduce emission reduction estimates for recycling programmes.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIIIaj")
+```
+
+## Getting Started
+
+```r
+library(cdmAmsIIIaj)
+library(dplyr)
+
+simulated <- simulate_ams_iiiaj_dataset(n_facilities = 2, n_periods = 3, seed = 2025)
+
+applicability <- check_applicability_material_quality_iiiaj(simulated$applicability, group_cols = "facility_id") %>%
+  left_join(
+    check_applicability_collection_network_iiiaj(simulated$applicability, group_cols = "facility_id"),
+    by = "facility_id"
+  ) %>%
+  left_join(
+    check_applicability_monitoring_plan_iiiaj(simulated$applicability, group_cols = "facility_id"),
+    by = "facility_id"
+  )
+
+reductions <- estimate_emission_reductions_ams_iiiaj(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = "facility_id",
+  baseline_args = list(days_col = "days_in_period"),
+  project_args = list(days_col = "days_in_period")
+)
+
+applicability
+reductions
+```
+
+For a more detailed walk-through see the vignette in `vignettes/cdmAmsIIIaj-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy AMS-III.AJ requirements before emission reductions can be claimed. Use the package helpers to document each criterion:
+
+- `check_applicability_material_quality_iiiaj()` – verifies recycled material types, contamination levels, and compliance with standards.
+- `check_applicability_collection_network_iiiaj()` – confirms collection coverage, segregation practice, and logistics adequacy.
+- `check_applicability_monitoring_plan_iiiaj()` – ensures monitoring plans track throughput, residual disposal, and calibration activities.
+
+## Key Equations
+
+`cdmAmsIIIaj` translates representative equations from AMS-III.AJ into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_emissions_iiiaj()` | Estimates baseline emissions from virgin material production and waste disposal. |
+| (2) | `calculate_project_emissions_iiiaj()` | Converts facility energy use and auxiliary fuels into project emissions. |
+| (3) | `calculate_leakage_emissions_iiiaj()` | Aggregates transport, residual disposal, and market leakage adjustments. |
+| (4) | `calculate_emission_reductions_iiiaj()` | Computes net emission reductions after project and leakage adjustments. |
+
+The meta-wrapper `estimate_emission_reductions_ams_iiiaj()` chains these helpers together for tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods_iiiaj()` summarises measured data across reporting periods while preserving entity identifiers.
+- `simulate_ams_iiiaj_dataset()` generates example datasets with monitoring metadata to support tests, demos, and onboarding.

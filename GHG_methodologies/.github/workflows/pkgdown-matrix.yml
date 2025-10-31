@@ -1,0 +1,64 @@
+name: pkgdown-matrix
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  discover-packages:
+    name: Discover packages
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.packages.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::fs
+            any::here
+            any::purrr
+            any::jsonlite
+      - id: packages
+        run: |
+          json=$(Rscript -e "source('tools/list_packages.R'); cat(jsonlite::toJSON(list_repo_packages(), auto_unbox = TRUE))")
+          echo "matrix=$json" >> "$GITHUB_OUTPUT"
+
+  pkgdown:
+    name: Build pkgdown for ${{ matrix.package }}
+    needs: discover-packages
+    if: ${{ needs.discover-packages.outputs.matrix != '' && needs.discover-packages.outputs.matrix != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.discover-packages.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          working-directory: ${{ matrix.package }}
+          extra-packages: |
+            any::pkgdown
+            any::whisker
+            any::glue
+            any::cli
+            any::fs
+            any::here
+            any::purrr
+      - name: Fetch gh-pages branch
+        run: git fetch origin gh-pages || echo "gh-pages does not exist yet"
+      - name: Build and deploy pkgdown site
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: Rscript tools/pkgdown/build_single_pkgdown.R --pkg "${{ matrix.package }}"

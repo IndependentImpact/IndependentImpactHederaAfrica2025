@@ -1,0 +1,52 @@
+---
+title: "cdmAmsIIIe"
+output: github_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# cdmAmsIIIe
+
+`cdmAmsIIIe` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-III.E Avoidance of methane production from decay of biomass (combustion / gasification / mechanical-thermal treatment)**. The package exposes applicability diagnostics, equation-level helpers, simulation utilities, and orchestration wrappers that align with tidyverse data practices.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_local("path/to/cdmAmsIIIe")
+```
+
+## Example
+
+```{r example, message = FALSE}
+library(cdmAmsIIIe)
+library(dplyr)
+
+simulated <- simulate_ams_iiie_dataset(n_plants = 2)
+
+applicability <- simulated$applicability |> 
+  check_applicability_feedstock_characteristics_iiie(group_cols = "plant_id") |> 
+  dplyr::left_join(
+    check_applicability_biomass_control_iiie(simulated$applicability, group_cols = "plant_id"),
+    by = "plant_id"
+  ) |> 
+  dplyr::left_join(
+    check_applicability_monitoring_practices_iiie(simulated$applicability, group_cols = "plant_id"),
+    by = "plant_id"
+  )
+
+workflow <- estimate_emission_reductions_ams_iiie(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = c("plant_id")
+)
+
+applicability
+workflow
+```

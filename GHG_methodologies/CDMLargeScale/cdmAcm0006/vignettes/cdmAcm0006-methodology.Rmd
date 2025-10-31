@@ -1,0 +1,41 @@
+---
+title: "Working with ACM0006 biomass projects"
+author: "cdmAcm0006 authors"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Working with ACM0006 biomass projects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+ACM0006 covers electricity and heat generation from biomass. The `cdmAcm0006`
+package provides helpers for applicability assessment, baseline and project
+emission calculations, and monitoring aggregation.
+
+```{r}
+library(cdmAcm0006)
+
+monitoring <- simulate_acm0006_dataset(6, seed = 2024)
+head(monitoring)
+```
+
+## Applicability checks
+
+```{r}
+check_applicability_biomass_feedstock("agricultural residues")
+check_applicability_biomass_fraction(monitoring$leakage_fraction * 0 + 0.95)
+```
+
+## Emission calculation workflow
+
+```{r}
+period_summary <- aggregate_monitoring_periods(monitoring)
+period_summary
+
+totals <- estimate_emission_reductions_acm0006(monitoring)
+totals
+```

@@ -1,0 +1,69 @@
+# cdmAmsIj
+
+`cdmAmsIj` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-I.J Solar water heating systems**.
+
+The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation
+wrappers to reproduce emission reduction estimates for solar hot water applications.
+
+## Installation
+
+```
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIj")
+```
+
+## Getting Started
+
+```
+library(cdmAmsIj)
+
+applicable <- all(
+  check_applicability_swh_capacity(capacity_mwth = 12),
+  check_applicability_solar_resource(annual_irradiation_kwhm2 = 1850),
+  check_applicability_backup_fraction(backup_fraction = 0.15)
+)
+
+if (applicable) {
+  thermal <- tibble::tibble(site_id = 1, useful_heat_mwh = 420)
+  auxiliary <- tibble::tibble(site_id = 1, auxiliary_energy_mwh = 60)
+  baseline <- calculate_useful_thermal_output(thermal)
+  baseline_emissions <- calculate_baseline_emissions(baseline, baseline_emission_factor = 0.22)
+  project_emissions <- calculate_project_emissions_auxiliary(auxiliary, emission_factor = 0.18)
+  emission_reductions <- calculate_emission_reductions(baseline_emissions, project_emissions)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIj-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-I.J requirements before emission reductions can be claimed. Use the
+package helpers to document each criterion:
+
+- `check_applicability_swh_capacity()` – verifies the solar thermal capacity remains under the 45 MWth
+  small-scale threshold for Type I activities.
+- `check_applicability_solar_resource()` – confirms that the project site receives adequate solar
+  irradiation to justify solar water heating.
+- `check_applicability_backup_fraction()` – ensures auxiliary fossil or electric heating contributes only
+  a limited share of useful thermal output.
+
+## Key Equations
+
+`cdmAmsIj` translates the numbered equations from AMS-I.J into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_useful_thermal_output()` | Sums useful solar thermal energy delivered during the monitoring period. |
+| (2) | `calculate_baseline_emissions()` | Applies the baseline emission factor representing displaced conventional water heating. |
+| (3) | `calculate_project_emissions_auxiliary()` | Estimates project emissions from auxiliary heating energy. |
+| (4) | `calculate_emission_reductions()` | Derives emission reductions by subtracting project emissions from baseline emissions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_ij()` chains these helpers together for
+tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while
+  preserving site-level identifiers and emission factors.
+- `simulate_ams_ij_dataset()` generates example datasets with monitoring metadata, solar fractions,
+  and emission outcomes to support tests, demos, and onboarding.

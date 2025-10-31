@@ -1,0 +1,16 @@
+utils::globalVariables(c(
+  "legume_share",
+  "legume_share_applicable",
+  "inoculant_registration_applicable",
+  "monitoring_periods_observed",
+  "monitoring_practices_applicable",
+  ".baseline_component",
+  ".inoculant_component",
+  "monitoring_periods",
+  "project_emissions_tco2e",
+  "emission_reductions_tco2e",
+  "project_fertilizer_emissions_tco2e",
+  "project_inoculant_emissions_tco2e",
+  "baseline_emissions_tco2e",
+  "leakage_emissions_tco2e"
+))

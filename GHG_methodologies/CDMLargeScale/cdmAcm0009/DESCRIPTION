@@ -1,0 +1,24 @@
+Package: cdmAcm0009
+Title: Implementation of CDM Large-Scale Methodology ACM0009
+Version: 0.1.0
+Authors@R: c(person(given = "Christiaan", family = "Pauw", email = "christiaan.pauw@gmal.com", role = c("aut", "cre")))
+Description: Provides helper tools for applying the Clean Development Mechanism methodology ACM0009 "Fuel switch from coal and/or petroleum fuels to natural gas". The package exposes applicability checks, fuel switching emission equations, monitoring data aggregation utilities, simulation helpers, and meta-estimators to support reproducible greenhouse gas accounting for thermal power plant conversions to natural gas.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr,
+    purrr,
+    rlang,
+    tibble,
+    stats
+Suggests: testthat (>= 3.0.0),
+    roxygen2,
+    devtools,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

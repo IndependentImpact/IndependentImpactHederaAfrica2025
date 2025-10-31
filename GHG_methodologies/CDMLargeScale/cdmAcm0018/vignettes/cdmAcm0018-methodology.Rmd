@@ -1,0 +1,110 @@
+---
+title: "ACM0018 Biomass Power Methodology"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0018 Biomass Power Methodology}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(cdmAcm0018)
+library(dplyr)
+```
+
+## Introduction
+
+ACM0018 covers grid-connected power plants that generate electricity using
+biomass feedstocks in a power-only configuration. This vignette illustrates the
+core helpers in `cdmAcm0018` for checking applicability, simulating monitoring
+data, walking through the emissions equations, and aggregating monitoring
+periods.
+
+## Applicability Checks
+
+The methodology requires renewable biomass feedstock, a power-only plant
+configuration, and biomass to supply the dominant share of fuel input.
+
+```{r applicability}
+check_applicability_biomass_feedstock_acm0018(
+  c("agricultural residues", "coal", "forest residues")
+)
+check_applicability_power_only_acm0018(
+  exports_heat = c(FALSE, TRUE),
+  generates_electricity = c(TRUE, TRUE)
+)
+check_applicability_biomass_fraction_acm0018(c(0.85, 0.72, 0.9))
+```
+
+## Simulated Monitoring Dataset
+
+`simulate_acm0018_dataset()` generates tidy monitoring data with electricity
+output, auxiliary fossil fuel use, onsite fossil generation, biomass transport
+activity, and leakage assumptions.
+
+```{r simulation}
+set.seed(2024)
+monitoring <- simulate_acm0018_dataset(3)
+knitr::kable(monitoring)
+```
+
+## Equation Walkthrough
+
+The equation helpers mirror the ACM0018 calculation sequence. Baseline emissions
+are driven by net electricity exported to the grid and the combined margin
+emission factor. Project emissions capture auxiliary fossil firing, onsite
+fossil generation, and biomass transport. Leakage is modelled as a fraction of
+baseline emissions.
+
+```{r equations}
+baseline <- calculate_baseline_emissions_acm0018(
+  monitoring$electricity_output_mwh,
+  monitoring$baseline_emission_factor
+)
+project <- calculate_project_emissions_acm0018(
+  monitoring$auxiliary_fossil_tj,
+  monitoring$auxiliary_fossil_ef,
+  monitoring$onsite_generation_mwh,
+  monitoring$onsite_emission_factor,
+  monitoring$biomass_transport_tkm,
+  monitoring$transport_emission_factor
+)
+leakage <- calculate_leakage_emissions_acm0018(
+  monitoring$leakage_fraction,
+  baseline
+)
+emission_reductions <- calculate_emission_reductions_acm0018(
+  baseline,
+  project,
+  leakage
+)
+
+dplyr::tibble(
+  period = monitoring$period,
+  baseline,
+  project,
+  leakage,
+  emission_reductions
+)
+```
+
+## Monitoring Period Aggregation
+
+`aggregate_monitoring_periods_acm0018()` summarises monitoring observations into
+period-level totals following the same calculation chain.
+
+```{r aggregation}
+aggregated <- aggregate_monitoring_periods_acm0018(monitoring)
+aggregated
+```
+
+## Portfolio Totals
+
+For design documents or verification summaries, the portfolio helper provides
+total generation, emissions, and emission reductions.
+
+```{r portfolio}
+estimate_emission_reductions_acm0018(monitoring)
+```

@@ -1,0 +1,129 @@
+---
+title: "AMS-I.E Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.E Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.E calculations using `cdmAmsIe`.
+The methodology covers renewable thermal technologies that displace non-renewable
+biomass used by end users. The core steps include quantifying the non-renewable
+biomass fraction, converting it to thermal energy, applying baseline emission
+factors, and accounting for any residual project fossil energy.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIe)
+check_applicability_capacity_limit(thermal_capacity_mw = 20)
+check_applicability_non_renewable_fraction(c(0.82, 0.88))
+check_applicability_project_renewable_fraction(renewable_fraction = 0.95)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_ie_dataset(n_users = 4, n_periods = 6, start_year = 2024)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 3
+)
+```
+
+The simulation includes monitoring metadata (`user_id`, `year`, and `month`) so
+that calculations can be aggregated over reporting periods while preserving
+entity-level identifiers.
+
+# Equation Walkthrough
+
+```{r calculations}
+non_renewable <- calculate_non_renewable_biomass(
+  example_data,
+  group_cols = "user_id"
+)
+baseline_energy <- calculate_baseline_energy_content(non_renewable, ncv = 15)
+baseline_emissions <- calculate_baseline_emissions(
+  baseline_energy,
+  emission_factor = example_data$emission_factor[1]
+)
+project_energy <- tibble::tibble(project_energy_mj = rep(120, nrow(baseline_energy)))
+project_emissions <- calculate_project_emissions(
+  project_energy,
+  project_emission_factor = 0.00009
+)
+emission_reductions <- calculate_emission_reductions(baseline_emissions, project_emissions)
+quiet_kable(head(emission_reductions), format = "html", digits = 3)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(example_data)
+quiet_kable(head(period_summary), format = "html", digits = 3)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_ie(
+  biomass_data = example_data,
+  group_cols = "user_id",
+  ncv = 15,
+  emission_factor = example_data$emission_factor[1],
+  project_energy_col = "project_energy_mj",
+  project_emission_factor = example_data$project_emission_factor[1]
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_non_renewable_biomass()`",
+    "`calculate_baseline_energy_content()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_ie()`",
+    "`simulate_ams_ie_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_non_renewable_biomass(biomass_data, consumption_col = \"biomass_consumption_tonnes\", fraction = 1, fraction_col = \"non_renewable_fraction\", group_cols = NULL, output_col = \"non_renewable_biomass_tonnes\")`",
+    "`calculate_baseline_energy_content(non_renewable_biomass, biomass_col = \"non_renewable_biomass_tonnes\", ncv, output_col = \"baseline_energy_mj\")`",
+    "`calculate_baseline_emissions(baseline_energy, emission_factor, energy_col = \"baseline_energy_mj\", output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions(project_energy, project_emission_factor, energy_col = \"project_energy_mj\", output_col = \"project_emissions_tco2e\")`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(biomass_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"user_id\", consumption_col = \"biomass_consumption_tonnes\", fraction_col = \"non_renewable_fraction\", ncv_col = \"net_calorific_value\", emission_factor_col = \"emission_factor\", project_energy_col = \"project_energy_mj\")`",
+    "`estimate_emission_reductions_ams_ie(biomass_data, group_cols = NULL, ncv = 15, emission_factor, project_energy_col = \"project_energy_mj\", project_emission_factor = 0, project_emission_factor_col = NULL)`",
+    "`simulate_ams_ie_dataset(n_users = 20, n_periods = 12, start_year = 2023, start_month = 1, mean_biomass_tonnes = 22, sd_biomass_tonnes = 4, emission_factor = 0.00009)`"
+  ),
+  Purpose = c(
+    "Applies the non-renewable fraction to baseline biomass consumption.<br>\\(NRB_y = \\sum_i B_{i,y} \\times f^{NR}_{i,y}\\)",
+    "Converts non-renewable biomass into thermal energy using the NCV.<br>\\(E^{BL}_y = NRB_y \\times NCV_y\\)",
+    "Multiplies baseline energy by the baseline emission factor.<br>\\(BE_y = E^{BL}_y \\times EF^{BL}_y\\)",
+    "Converts residual fossil energy into project emissions.<br>\\(PE_y = \\sum_i E^{PR}_{i,y} \\times EF^{PR}_{i,y}\\)",
+    "Subtracts project emissions from baseline emissions to obtain reductions.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Aggregates monitoring data by entity and reporting period.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Chains the equation helpers into a tidyverse-friendly workflow.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Generates synthetic monitoring data for examples and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```

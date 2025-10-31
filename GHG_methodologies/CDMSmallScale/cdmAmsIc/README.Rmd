@@ -1,0 +1,68 @@
+---
+title: "cdmAmsIc"
+output: github_document
+---
+
+`cdmAmsIc` implements the Clean Development Mechanism (CDM) small-scale methodology **AMS-I.C Thermal energy production with or without electricity**. The package follows tidyverse design principles and exposes equation-level helpers, applicability checks, and meta-calculation wrappers to reproduce emission reduction estimates for renewable thermal energy systems.
+
+## Installation
+
+``` r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/cdmAmsIc")
+```
+
+## Getting Started
+
+``` r
+library(cdmAmsIc)
+
+applicable <- all(
+  check_applicability_thermal_capacity(capacity_mwth = 20),
+  check_applicability_renewable_supply(renewable_fraction = 0.85),
+  check_applicability_fossil_displacement(fossil_heat_share = 0.7)
+)
+
+if (applicable) {
+  thermal <- tibble::tibble(facility_id = 1, thermal_energy_mwh = 900)
+  baseline <- calculate_baseline_thermal_output(thermal)
+  emissions <- calculate_baseline_emissions(baseline, baseline_emission_factor = 0.25)
+  project <- calculate_project_emissions(baseline, project_emission_factor = 0.02)
+  emission_reductions <- calculate_emission_reductions(emissions, project)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAmsIc-methodology.Rmd`.
+
+## Applicability Conditions
+
+Projects must satisfy core AMS-I.C requirements before emission reductions can be claimed. Use the
+package helpers to document each criterion:
+
+- `check_applicability_thermal_capacity()` – verifies the system remains under the 45 MWth
+  small-scale threshold for Type I activities.
+- `check_applicability_renewable_supply()` – confirms that renewable sources supply the majority
+  of useful heat delivered by the system.
+- `check_applicability_fossil_displacement()` – ensures the project displaces a meaningful share of
+  fossil-fuel-derived thermal energy in the baseline scenario.
+
+## Key Equations
+
+`cdmAmsIc` translates the numbered equations from AMS-I.C into composable R functions:
+
+| Equation | Function | Description |
+|----------|----------|-------------|
+| (1) | `calculate_baseline_thermal_output()` | Sums useful thermal energy delivered during the baseline period. |
+| (2) | `calculate_baseline_emissions()` | Applies the baseline emission factor to thermal output to estimate displaced fossil emissions. |
+| (3) | `calculate_project_emissions()` | Estimates fossil emissions from auxiliary or backup heat use in the project scenario. |
+| (4) | `calculate_emission_reductions()` | Derives emission reductions by subtracting project emissions from baseline emissions. |
+
+The meta-wrapper `estimate_emission_reductions_ams_ic()` chains these helpers together for
+tidyverse-friendly datasets.
+
+## Monitoring and Simulation Utilities
+
+- `aggregate_monitoring_periods()` summarises measured data across reporting periods while
+  preserving facility-level identifiers and emission factors.
+- `simulate_ams_ic_dataset()` generates example datasets with monitoring metadata to support tests,
+  demos, and onboarding.

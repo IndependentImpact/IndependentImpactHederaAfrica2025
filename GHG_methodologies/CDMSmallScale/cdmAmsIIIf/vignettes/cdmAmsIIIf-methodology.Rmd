@@ -1,0 +1,110 @@
+---
+title: "AMS-III.F Composting Workflow"
+author: "OpenAI Assistant"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-III.F Composting Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+AMS-III.F covers project activities that avoid methane emissions from organic waste by implementing controlled aerobic composting. This vignette demonstrates how `cdmAmsIIIf` operationalises the methodology with tidyverse data structures and composable helpers.
+
+# Simulate Monitoring Data
+
+```{r simulate}
+library(cdmAmsIIIf)
+library(dplyr)
+
+simulated <- simulate_ams_iiif_dataset(n_sites = 2, n_periods = 2, seed = 2024)
+str(simulated, max.level = 1)
+```
+
+# Check Applicability
+
+```{r applicability}
+feedstock <- check_applicability_feedstock_management_iiif(simulated$applicability, group_cols = "site_id")
+practices <- check_applicability_composting_practices_iiif(simulated$applicability, group_cols = "site_id")
+monitoring <- check_applicability_monitoring_framework_iiif(simulated$applicability, group_cols = "site_id")
+
+applicability <- feedstock %>%
+  left_join(practices, by = "site_id") %>%
+  left_join(monitoring, by = "site_id")
+
+applicability
+```
+
+# Run Equation Helpers
+
+```{r helpers}
+baseline <- calculate_baseline_methane_emissions_iiif(
+  simulated$baseline,
+  group_cols = "site_id",
+  oxidation_factor_col = "baseline_oxidation_fraction"
+)
+project <- calculate_project_emissions_iiif(
+  simulated$project,
+  group_cols = "site_id",
+  compost_oxidation_col = "compost_oxidation_fraction"
+)
+leakage <- calculate_leakage_emissions_iiif(simulated$leakage, group_cols = "site_id")
+
+dplyr::bind_cols(baseline, project[-1], leakage[-1])
+```
+
+# Estimate Emission Reductions
+
+```{r workflow}
+reductions <- estimate_emission_reductions_ams_iiif(
+  baseline_data = simulated$baseline,
+  project_data = simulated$project,
+  leakage_data = simulated$leakage,
+  group_cols = "site_id",
+  baseline_args = list(oxidation_factor_col = "baseline_oxidation_fraction"),
+  project_args = list(compost_oxidation_col = "compost_oxidation_fraction")
+)
+
+reductions
+```
+
+# Aggregate Monitoring Periods
+
+```{r aggregate}
+baseline_period <- calculate_baseline_methane_emissions_iiif(
+  simulated$baseline,
+  group_cols = c("site_id", "period"),
+  oxidation_factor_col = "baseline_oxidation_fraction"
+)
+project_period <- calculate_project_emissions_iiif(
+  simulated$project,
+  group_cols = c("site_id", "period"),
+  compost_oxidation_col = "compost_oxidation_fraction"
+)
+leakage_period <- calculate_leakage_emissions_iiif(
+  simulated$leakage,
+  group_cols = c("site_id", "period")
+)
+
+period_results <- baseline_period %>%
+  left_join(project_period, by = c("site_id", "period")) %>%
+  left_join(leakage_period, by = c("site_id", "period")) %>%
+  mutate(monitoring_period = period)
+
+aggregate_monitoring_periods_iiif(
+  period_results,
+  group_cols = "site_id",
+  monitoring_col = "monitoring_period"
+)
+```
+
+The helpers and workflow wrapper simplify reproducing AMS-III.F calculations with tidy inputs while providing traceable applicability evidence.

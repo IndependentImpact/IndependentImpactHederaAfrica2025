@@ -1,0 +1,30 @@
+---
+output: github_document
+---
+
+# cdmAcm0006
+
+`cdmAcm0006` implements the Clean Development Mechanism (CDM) large-scale methodology **ACM0006 Electricity and heat generation from biomass**. The package follows tidyverse design principles and exposes applicability checks, equation-level helpers, and meta-calculation wrappers to reproduce emission reduction estimates for biomass-fired combined heat and power plants.
+
+## Installation
+
+```r
+# install.packages("devtools")
+devtools::install_github("independent-impact/GHG_methodologies/CDMLargeScale/cdmAcm0006")
+```
+
+## Getting Started
+
+```{r}
+library(cdmAcm0006)
+
+data <- simulate_acm0006_dataset(6, seed = 123)
+
+if (check_applicability_biomass_feedstock("agricultural residues") &&
+    all(check_applicability_biomass_fraction(0.95))) {
+  period_summary <- aggregate_monitoring_periods(data)
+  totals <- estimate_emission_reductions_acm0006(data)
+}
+```
+
+For a full walk-through see the vignette in `vignettes/cdmAcm0006-methodology.Rmd`.

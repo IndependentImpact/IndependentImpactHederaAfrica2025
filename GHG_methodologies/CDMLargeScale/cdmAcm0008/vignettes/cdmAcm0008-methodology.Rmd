@@ -1,0 +1,104 @@
+---
+title: "ACM0008 Methodology Walkthrough"
+author: "Independent Impact"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACM0008 Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+This vignette demonstrates how `cdmAcm0008` operationalises the CDM large-scale methodology **ACM0008 Consolidated methodology for coal mine methane projects**. The package translates the methodology's numbered equations into tidyverse-friendly helpers, enabling analysts to reproduce baseline, project, leakage, and net emission reduction estimates for methane capture, utilisation, and oxidation systems.
+
+## Applicability Checks
+
+The package exposes helpers to test key applicability conditions.
+
+```{r applicability}
+library(cdmAcm0008)
+
+check_applicability_mine_type("underground", TRUE)
+check_applicability_methane_content(c(0.34, 0.36))
+check_applicability_utilisation_pathway(c("oxidation", "venting"), c(TRUE, TRUE))
+```
+
+## Simulated Dataset
+
+We provide a simulation utility built with tidyverse conventions to generate representative monitoring data.
+
+```{r simulation}
+monitoring <- simulate_acm0008_dataset(periods = 2, observations_per_period = 8, seed = 456)
+
+knitr::kable(head(monitoring))
+```
+
+## Equation Walkthrough
+
+Equation-level helpers align with the methodology's numbering.
+
+```{r equations}
+period_one <- dplyr::filter(monitoring, period == "P01")
+volume <- calculate_methane_volume_acm0008(period_one$flow_rate_m3_per_h, period_one$operating_hours)
+baseline <- calculate_baseline_emissions_acm0008(volume, period_one$methane_fraction)
+project <- calculate_project_emissions_acm0008(volume, period_one$methane_fraction, period_one$oxidation_efficiency)
+leakage <- calculate_leakage_emissions_acm0008(period_one$electricity_use_mwh, period_one$grid_emission_factor_t_per_mwh)
+net <- calculate_net_emission_reductions_acm0008(baseline, project, leakage)
+
+tibble::tibble(
+  observation = period_one$observation,
+  baseline,
+  project,
+  leakage,
+  net
+)
+```
+
+## Monitoring Period Aggregation
+
+```{r aggregation}
+period_summary <- aggregate_monitoring_periods_acm0008(monitoring)
+knitr::kable(period_summary)
+```
+
+## Meta-Function
+
+```{r meta}
+totals <- estimate_emission_reductions_acm0008(monitoring)
+knitr::kable(totals)
+```
+
+## Function Reference
+
+```{r function-reference}
+reference <- tibble::tribble(
+  ~Function, ~Signature, ~Purpose,
+  "check_applicability_mine_type", "(mine_type, requires_drainage, allowed_types)", "Validate coal mine classification and drainage availability.",
+  "calculate_baseline_emissions_acm0008", "(recovered_volume_m3, methane_fraction, methane_density_t_per_m3, gwp_ch4)", "Translate Equation 2 for baseline emissions.",
+  "estimate_emission_reductions_acm0008", "(monitoring_data)", "Summarise monitoring data into total emission reductions."
+)
+
+knitr::kable(reference)
+```
+
+## Workflow Overview
+
+```{r workflow-overview}
+workflow <- tibble::tribble(
+  ~Step, ~Description,
+  "1", "Confirm applicability via mine type, methane content, and utilisation pathway checks.",
+  "2", "Collect monitoring data on methane flows, composition, oxidation efficiency, and electricity use.",
+  "3", "Apply equation helpers to compute baseline, project, and leakage emissions.",
+  "4", "Aggregate emissions by monitoring period and estimate total reductions."
+)
+
+knitr::kable(workflow)
+```

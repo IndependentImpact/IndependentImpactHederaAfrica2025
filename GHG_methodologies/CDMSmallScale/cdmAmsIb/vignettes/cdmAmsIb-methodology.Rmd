@@ -1,0 +1,146 @@
+---
+title: "AMS-I.B Methodology Walkthrough"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AMS-I.B Methodology Walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r kable-helper, include = FALSE}
+quiet_kable <- function(...) suppressWarnings(knitr::kable(...))
+```
+
+
+# Introduction
+
+This vignette demonstrates how to reproduce the AMS-I.B calculations using `cdmAmsIb`. The
+methodology covers renewable mechanical energy systems (e.g. water pumping or grain milling)
+that displace fossil fuel-based equipment. The core steps involve quantifying baseline fuel
+consumption, converting it to energy, applying fossil emission factors, and accounting for any
+residual project fossil use.
+
+# Applicability Checks
+
+```{r applicability}
+library(cdmAmsIb)
+check_applicability_mechanical_capacity(capacity_kw = 1000)
+check_applicability_renewable_driver(renewable_fraction = 0.95)
+check_applicability_service_displacement(fossil_service_share = 0.8)
+```
+
+# Simulated Dataset
+
+```{r simulation}
+set.seed(123)
+example_data <- simulate_ams_ib_dataset(n_machines = 6, n_periods = 4, start_year = 2024, start_month = 10)
+quiet_kable(
+  head(example_data),
+  format = "html",
+  digits = 2
+)
+```
+
+The simulation includes monitoring metadata (`monitoring_period`, `year`, `month`,
+`day`, and `monitoring_label`) plus baseline fuel characteristics and derived emissions that can
+be aggregated over reporting periods.
+
+# Equation Walkthrough
+
+```{r calculations}
+baseline_energy <- calculate_baseline_energy_content(example_data, group_cols = "machine_id")
+baseline_emis <- calculate_baseline_emissions(baseline_energy, emission_factor = 0.00007)
+project_energy <- tibble::tibble(
+  machine_id = unique(example_data$machine_id),
+  project_energy_mj = 0
+)
+project_emis <- calculate_project_emissions(project_energy, project_emission_factor = 0)
+emission_reductions <- calculate_emission_reductions(baseline_emis, project_emis)
+quiet_kable(head(emission_reductions), format = "html", digits = 4)
+```
+
+# Monitoring Period Aggregation
+
+```{r monitoring}
+period_summary <- aggregate_monitoring_periods(
+  monitoring_data = example_data,
+  monitoring_cols = c("monitoring_label"),
+  group_cols = "machine_id"
+)
+
+quiet_kable(head(period_summary), format = "html", digits = 4)
+```
+
+# Meta-Function
+
+```{r meta}
+estimate_emission_reductions_ams_ib(
+  fuel_data = example_data,
+  emission_factor = 0.00007,
+  group_cols = "machine_id"
+)
+```
+
+# Function Reference
+
+```{r reference}
+function_reference <- tibble::tibble(
+  Function = c(
+    "`calculate_baseline_energy_content()`",
+    "`calculate_baseline_emissions()`",
+    "`calculate_project_emissions()`",
+    "`calculate_emission_reductions()`",
+    "`aggregate_monitoring_periods()`",
+    "`estimate_emission_reductions_ams_ib()`",
+    "`simulate_ams_ib_dataset()`"
+  ),
+  Signature = c(
+    "`calculate_baseline_energy_content(fuel_data, consumption_col = \"fuel_consumption\", ncv_col = \"net_calorific_value\", group_cols = NULL)`",
+    "`calculate_baseline_emissions(energy_data, energy_col = \"baseline_energy_mj\", emission_factor, output_col = \"baseline_emissions_tco2e\")`",
+    "`calculate_project_emissions(project_energy, energy_col = \"project_energy_mj\", project_emission_factor = 0, output_col = \"project_emissions_tco2e\")`",
+    "`calculate_emission_reductions(baseline_emissions, project_emissions, baseline_col = \"baseline_emissions_tco2e\", project_col = \"project_emissions_tco2e\", output_col = \"emission_reductions_tco2e\")`",
+    "`aggregate_monitoring_periods(monitoring_data, monitoring_cols = c(\"year\", \"month\"), group_cols = \"machine_id\")`",
+    "`estimate_emission_reductions_ams_ib(fuel_data, consumption_col = \"fuel_consumption\", ncv_col = \"net_calorific_value\", group_cols = NULL, emission_factor, project_energy_col = NULL, project_emission_factor = 0)`",
+    "`simulate_ams_ib_dataset(n_machines = 15, n_periods = 12, start_year = 2023, start_month = 1, mean_service_mj = 48000, sd_service_mj = 6000, emission_factor = 0.00007, project_fossil_share = 0.05)`"
+  ),
+  Purpose = c(
+    "Convert baseline fuel consumption into mechanical energy.<br>\\(E^{BL}_y = \\sum_i FC^{BL}_{i,y} \\times NCV^{BL}_{i,y}\\)",
+    "Calculate baseline emissions using fossil fuel factors.<br>\\(BE_y = E^{BL}_y \\times EF^{BL}_y\\)",
+    "Estimate project emissions from any residual fossil use.<br>\\(PE_y = \\sum_i E^{PR}_{i,y} \\times EF^{PR}_{i,y}\\)",
+    "Compute emission reductions by differencing baselines and project values.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Aggregate monitoring data to reporting periods.<br>\\(ER_{p,y} = BE_{p,y} - PE_{p,y}\\)",
+    "Provide a wrapper returning emission reductions and supporting columns.<br>\\(ER_y = BE_y - PE_y\\)",
+    "Generate representative monitoring data for demonstrations and tests."
+  )
+)
+
+quiet_kable(function_reference, format = "html", escape = FALSE)
+```
+
+# Workflow Overview
+
+```{r workflow-overview, echo = FALSE}
+workflow_steps <- tibble::tibble(
+  Step = c(
+    "Input fuel consumption data",
+    "calculate_baseline_energy_content",
+    "calculate_baseline_emissions",
+    "calculate_project_emissions",
+    "calculate_emission_reductions",
+    "estimate_emission_reductions_ams_ib"
+  ),
+  Purpose = c(
+    "Collect machine-level fuel data and monitoring metadata.",
+    "Aggregate fossil fuel energy content per machine or period.",
+    "Apply emission factors to quantify baseline emissions.",
+    "Account for any residual project fossil energy consumption.",
+    "Compute emission reductions by differencing baseline and project emissions.",
+    "Provide a single wrapper returning reductions and supporting columns."
+  )
+)
+
+quiet_kable(workflow_steps, format = "html", escape = FALSE)
+```
