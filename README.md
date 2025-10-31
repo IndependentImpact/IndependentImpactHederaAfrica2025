@@ -49,7 +49,9 @@ These methodologies are ready to use within the Monitoring Verification Workflow
 The explorer is live at https://chat.independentimpact.org. A users OpenAI API key is currently required
 
 ### Protocol
-`Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17. This will form the basis for the subsequent full implementation of the reputation system. 
+`Protocol/` contains the Independent Impact governance blueprints—introduction, principles, scoring systems, voting, anti-gaming controls, and the Hedera-anchored technical implementation notes—which the portal enforces programmatically.【F:Protocol/00-Protocol.md†L1-L16】【F:Protocol/11-a-TechnicalImplementation.md†L1-L17. 
+
+This will form the basis for the subsequent full implementation of the reputation system. 
 
 ## Hedera Integration Summary
 
@@ -178,16 +180,17 @@ Contact info@jellyfiiish.xyz to request permission to access the jellyfi3shR pac
  
 5. **Configure `global.R`**: Copy `ProjectDevelopmentPortal/template_global.R` to `ProjectDevelopmentPortal/global.R`, replace every `REPLACE_ME` placeholder with your local paths, Postgres host, database, and port, and confirm `hederaNetwork` stays on `testnet`. Set `reticulate::use_python` to the interpreter from the previous step.【F:ProjectDevelopmentPortal/template_global.R†L2-L85】
    
-7. **Provide secrets via `iwefdj`**: Populate an `.Rda` file (or equivalent secure loader) with an list that stores Hedera operator credentials, Cyphr key paths/passwords, Postgres username/password, Python path, Web3.storage configuration, and service emails referenced across the modules.【F:ProjectDevelopmentPortal/template_global.R†L54-L85】【F:ProjectDevelopmentPortal/functions/dbAuxFunctions/getDbCon.R†L22-L27】【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L343-L418】
+6. **Provide secrets via `iwefdj`**: Populate an `.Rda` file (or equivalent secure loader) with an list that stores Hedera operator credentials, Cyphr key paths/passwords, Postgres username/password, Python path, Web3.storage configuration, and service emails referenced across the modules.【F:ProjectDevelopmentPortal/template_global.R†L54-L85】【F:ProjectDevelopmentPortal/functions/dbAuxFunctions/getDbCon.R†L22-L27】【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L343-L418】
 
-9. **Set environment variables**: Export `API_KEY_FLUREE` (for the Fluree ledger) and any additional secrets consumed by Docker services or helper scripts.【F:ProjectDevelopmentPortal/scripts/setup.R†L6-L13】
+7. **Set environment variables**: Export `API_KEY_FLUREE` (for the Fluree ledger) and any additional secrets consumed by Docker services or helper scripts.【F:ProjectDevelopmentPortal/scripts/setup.R†L6-L13】
     
-11. **Provision the database**: Run the one-time bootstrap script to create tables, load workflows, schemas, and (optionally) token definitions. Use a dedicated Hedera operator account with sufficient Testnet HBAR when running this step.
+8. **Provision the database**: Run the one-time bootstrap script to create tables, load workflows, schemas, and (optionally) token definitions. Use a dedicated Hedera operator account with sufficient Testnet HBAR when running this step.
    ```bash
    Rscript ProjectDevelopmentPortal/scripts/setup.R
    ```
    The script iterates over SQL files in `table-definitions/`, registers workflow metadata, and links operator keys to the ledger.【F:ProjectDevelopmentPortal/scripts/setup.R†L18-L160】【F:ProjectDevelopmentPortal/scripts/setup.R†L200-L346】
-11. **Launch the portal**: Start the Shiny app in Testnet mode.
+   
+9. **Launch the portal**: Start the Shiny app in Testnet mode.
    ```bash
    R -e "shiny::runApp('ProjectDevelopmentPortal')"
    ```
@@ -214,8 +217,9 @@ Data flows from the Shiny UI into R modules that persist state in Postgres/Flure
 
 ## Deployed Hedera IDs (Testnet)
 - **Methodology Schema Topic:** `0.0.5622522` (`messageId 1740491068.879838270`) owned by DID `did:hedera:testnet:..._0.0.5622502`; document stored at `ipfs://bafybeidtmwpb5osb6akmhzye63ordlqvy7qdla22njcaxetoqzc4gmbola`.【F:ProjectDevelopmentPortal/schemas/#7f477eea-d0ab-4ad7-a448-f771c58f22bb&1.0.0.json†L1】
+- 
 - **Impact Schema Topic:** `0.0.5622522` (`messageId 1740658973.415082000`) with the same DID controller and IPFS CID `bafybeighww5iocg2orqc6ciidj7ajdyadnvlp66a355duebn5ignczxgdy`.【F:ProjectDevelopmentPortal/schemas/#7283faa7-578d-471d-aa7f-04ff62b795e1&3.0.0.json†L1】
+- 
 - **Operator DID Account:** `0.0.5622502`, referenced as creator/owner for schema publications and resolved through Hiero DID registration during onboarding.【F:ProjectDevelopmentPortal/schemas/#7f477eea-d0ab-4ad7-a448-f771c58f22bb&1.0.0.json†L1】【F:ProjectDevelopmentPortal/modules/createIndImpAccount.R†L336-L418】
 
-Update this section as you deploy additional workflows (e.g., license tokens, review topics, mirror node queries) so judges can replay transactions during evaluation.
 
