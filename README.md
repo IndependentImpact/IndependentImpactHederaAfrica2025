@@ -12,6 +12,8 @@ This repository contains a submission for the 2025 Hedera Africa Hackathon
 
 ### System architecture
 
+High-level view of Hedera interactions in Independent Impact Project Development Portal.
+
 ![Hedera Architecture](ArchitectureDiagram.png)
 
 ### Project Development Portal (primary focus)
