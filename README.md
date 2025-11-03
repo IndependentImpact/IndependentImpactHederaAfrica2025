@@ -142,6 +142,8 @@ Furthermore, Hedera Consensus Service’s message-based (as opposed to data-base
 
 Finally, Hedera’s energy efficiency and carbon-negative operations reduce environmental externalities and align perfectly with Independent Impact’s mission. The network’s low energy footprint ensures that tokenising and verifying impact outcomes remain consistent with the values the platform seeks to promote — transparency, accountability, and sustainability delivered at minimal cost.
 
+Every recorded action—project creation, reviewer commentary, or certificate issuance—maps to deterministic Hedera micro-fees noted in the protocol documentation. Combined with ABFT finality and 10k+ TPS capacity, these stable costs let Independent Impact subsidise onboarding for smaller African developers today and scale to national programmes without renegotiating treasury budgets.
+
 ### Other Hedera components used
 
 #### 1. Hiero Python SDK
@@ -172,9 +174,6 @@ Methods used:
 #### 3. Mirror node REST API
 
 We have created and open-sourced a Hedera library for interacting with the mirror nodes from within R (https://github.com/Jellyfi3sh/hedera/tree/main). We use this library extensively to query Hedera mirror nodes.
-
-### Economic Justification
-Every recorded action—project creation, reviewer commentary, or certificate issuance—maps to deterministic Hedera micro-fees noted in the protocol documentation. Combined with ABFT finality and 10k+ TPS capacity, these stable costs let Independent Impact subsidise onboarding for smaller African developers today and scale to national programmes without renegotiating treasury budgets.
 
 ## Deployment & Setup Instructions
 
