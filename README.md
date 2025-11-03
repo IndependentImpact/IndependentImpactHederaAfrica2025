@@ -19,7 +19,7 @@ High-level view of Hedera interactions in Independent Impact Project Development
 ### Project Development Portal (primary focus)
 The `ProjectDevelopmentPortal/` directory hosts the Independent Impact Project Development Portal. The portal is also hosted at https://app.independentimpact.org, currently running on testnet. Test it out by creating an account (recommended), or for rapid testing, by logging in as one of the pre-created test users:
 
-* userabcde12345@nomail.com with password aBcDe_54321 for a project developer role,  or  
+* abcde12345@nomail.com with password aBcDe_54321 for a project developer role,  or  
 * fghij67890@nomail.com with password fGhIj_09876 for a validator/verifier role
 
 The Project Development Portal provides the infrastructure for designing, validating, and verifying impact projects. Impact projects are any undertaking that is specifically intended to lead to a beneficial impact over and above what would have transpired in the normal course of events. This typically includes greenhouse gas emission reduction projects, but also climate change adaptation, health, and poverty alleviation. 
