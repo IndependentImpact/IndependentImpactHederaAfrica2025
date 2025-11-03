@@ -216,10 +216,16 @@ Contact info@jellyfiiish.xyz to request permission to access the jellyfi3shR pac
 
 
 ## Deployed Hedera IDs (Testnet)
-- **Methodology Schema Topic:** `0.0.5622522` (`messageId 1740491068.879838270`) owned by DID `did:hedera:testnet:..._0.0.5622502`; document stored at `ipfs://bafybeidtmwpb5osb6akmhzye63ordlqvy7qdla22njcaxetoqzc4gmbola`.
-- 
-- **Impact Schema Topic:** `0.0.5622522` (`messageId 1740658973.415082000`) with the same DID controller and IPFS CID `bafybeighww5iocg2orqc6ciidj7ajdyadnvlp66a355duebn5ignczxgdy`.【ProjectDevelopmentPortal/schemas/#7283faa7-578d-471d-aa7f-04ff62b795e1&3.0.0.json†L1】
-- 
-- **Operator DID Account:** `0.0.5622502`, referenced as creator/owner for schema publications and resolved through Hiero DID registration during onboarding.
+Hedera operator
+- Account ID: 0.0.6496779  
 
+Fruit Tree Project (real project data)
+- Hedera topic ID: 0.0.6913315  
+- Creator DID: did:hedera:testnet:z2uwK45vHjumcFkb9jpdiRGGFomc6tgaxLPzD6LHZwy49_0.0.6913191  
+
+Test Project 1 (used in demo video)
+- Hedera topic ID: 0.0.6575584  
+- Creator DID: did:hedera:testnet:z4UPiTqcDEZ9DgBCYUPcLqABtVUrw9mqzwKLFyaaPb2z7_0.0.6570345  
+
+These IDs and all others are provided in the Project Development Portal.
 
